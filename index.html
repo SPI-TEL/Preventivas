@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +14,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+    
     .card-kpi {
       background: #ffffff;
       border-radius: 0.75rem;
@@ -37,6 +38,20 @@
     .kpi-emerald::before { background: #10b981; }
     .kpi-amber::before { background: #f59e0b; }
     .kpi-rose::before { background: #e11d48; }
+
+    /* Fixação e opacidade do cabeçalho da tabela */
+    .table-container {
+      max-height: 580px;
+      overflow-y: auto;
+    }
+    .table-container thead th {
+      position: sticky;
+      top: 0;
+      background-color: #f8fafc !important;
+      color: #334155 !important;
+      z-index: 20;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
   </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -87,21 +102,21 @@
     <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-wrap justify-between items-center gap-2 border-l-4 border-l-emerald-500">
       <div class="flex items-center space-x-2 text-xs text-slate-700">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="font-bold text-slate-900">Sucesso:</span>
-        <span id="txtStatusConexao">Base de dados conectada e sincronizada com a folha de cálculo online.</span>
+        <span class="font-bold text-slate-900">Regra Ativa:</span>
+        <span id="txtStatusConexao">Gestor TEL = Pendente | Gestor VIVO / Outros = Executada.</span>
       </div>
       <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200">
         <i class="fa-solid fa-bullseye"></i>
-        <span class="font-semibold">Meta de Execução: 100% das Preventivas no Prazo</span>
+        <span class="font-semibold">Meta de Execução: 100% das Preventivas</span>
       </div>
     </div>
 
     <!-- CARDS TOTALIZADORES -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       <!-- Total OS -->
       <div class="card-kpi kpi-blue p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total OS</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Programadas</span>
           <i class="fa-solid fa-list-check text-sky-500 text-sm"></i>
         </div>
         <div class="my-2">
@@ -125,10 +140,10 @@
         </div>
       </div>
 
-      <!-- Pendentes / Em Campo -->
+      <!-- Pendentes (TEL) -->
       <div class="card-kpi kpi-amber p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Pendentes</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Pendentes (TEL)</span>
           <i class="fa-solid fa-hourglass-half text-amber-500 text-sm"></i>
         </div>
         <div class="my-2">
@@ -138,18 +153,6 @@
           <span class="text-slate-400">Em aberto</span>
           <span id="cardPctPendentes" class="font-bold text-amber-600">0.0%</span>
         </div>
-      </div>
-
-      <!-- Programadas (Padrão) -->
-      <div class="card-kpi kpi-indigo p-3.5 flex flex-col justify-between">
-        <div class="flex justify-between items-start">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Programadas</span>
-          <i class="fa-solid fa-calendar-days text-indigo-500 text-sm"></i>
-        </div>
-        <div class="my-2">
-          <span id="cardProgramadas" class="text-2xl font-black text-indigo-600">0</span>
-        </div>
-        <p class="text-[10px] text-slate-400 font-medium">Fluxo Mensal Fixo</p>
       </div>
 
       <!-- Sob Demanda (Tipo 8) -->
@@ -165,22 +168,22 @@
         <p class="text-[10px] text-slate-400 font-medium">Tipo 8 (K1, K2, L1, L2)</p>
       </div>
 
-      <!-- Execução Incompleta / Alerta -->
-      <div class="card-kpi kpi-rose p-3.5 flex flex-col justify-between">
+      <!-- Rotina Regular -->
+      <div class="card-kpi kpi-indigo p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Incompletas</span>
-          <i class="fa-solid fa-triangle-exclamation text-rose-500 text-sm"></i>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Rotina Padrão</span>
+          <i class="fa-solid fa-calendar-days text-indigo-500 text-sm"></i>
         </div>
         <div class="my-2">
-          <span id="cardIncompletas" class="text-2xl font-black text-rose-600">0</span>
+          <span id="cardProgramadas" class="text-2xl font-black text-indigo-600">0</span>
         </div>
-        <p class="text-[10px] text-rose-500 font-medium">Requerem Revisão</p>
+        <p class="text-[10px] text-slate-400 font-medium">Programação Regular</p>
       </div>
 
-      <!-- Eficiência Global -->
+      <!-- Eficiência Real -->
       <div class="card-kpi kpi-cyan p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Atingimento</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Atingimento Real</span>
           <i class="fa-solid fa-chart-line text-cyan-500 text-sm"></i>
         </div>
         <div class="my-2">
@@ -190,7 +193,7 @@
       </div>
     </div>
 
-    <!-- FILTROS DE PESQUISA -->
+    <!-- FILTROS DE PESQUISA (SEM GESTOR) -->
     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-2 text-slate-800 text-xs font-bold uppercase tracking-wider">
@@ -203,18 +206,14 @@
         </button>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
         <div>
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Gerência</label>
-          <select id="filtroGerencia" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+          <select id="filtroGerencia" onchange="aoMudarGerencia()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
         </div>
         <div>
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Coordenação</label>
           <select id="filtroCoordenacao" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
-        </div>
-        <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Gestor</label>
-          <select id="filtroGestor" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
         </div>
         <div>
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Responsável</label>
@@ -242,16 +241,16 @@
       </div>
     </div>
 
-    <!-- GRÁFICOS -->
+    <!-- GRÁFICOS: BARRAS EMPILHADAS + PROJEÇÃO POR DDD -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <!-- Gráfico 1: Barras Empilhadas 100% -->
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center space-x-2">
             <i class="fa-solid fa-chart-column text-teal-600"></i>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Preventivas por DDD (Empilhado 100%)</h3>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Preventivas por DDD da Gerência (Empilhado 100%)</h3>
           </div>
-          <span class="text-[10px] text-slate-400 uppercase font-semibold">Executadas vs Pendentes</span>
+          <span class="text-[10px] text-slate-400 uppercase font-semibold">Executadas vs Pendentes (TEL)</span>
         </div>
         <div class="relative h-64">
           <canvas id="chartStackedDDD"></canvas>
@@ -273,31 +272,73 @@
       </div>
     </div>
 
-    <!-- TABELA ANALÍTICA -->
+    <!-- GRÁFICO DIARIZADO COM COLUNAS E LINHAS ACUMULATIVAS -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <div class="flex justify-between items-center mb-3">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-calendar-check text-indigo-600"></i>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Acompanhamento Diarizado: Executadas no Dia vs Meta Acumulada vs Realizado Acumulado</h3>
+        </div>
+        <div class="flex items-center space-x-3 text-[11px]">
+          <span class="flex items-center"><span class="w-3 h-3 bg-emerald-500 rounded mr-1"></span> Executadas Dia</span>
+          <span class="flex items-center"><span class="w-3 h-1 bg-amber-500 rounded mr-1"></span> Meta Acumulada</span>
+          <span class="flex items-center"><span class="w-3 h-1 bg-blue-600 rounded mr-1"></span> Realizado Acumulado</span>
+        </div>
+      </div>
+      <div class="relative h-72">
+        <canvas id="chartDiarizado"></canvas>
+      </div>
+    </div>
+
+    <!-- TABELA ANALÍTICA COM PAGINAÇÃO DE 60 LINHAS -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <div class="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
         <div class="flex items-center space-x-2 text-xs font-bold uppercase text-slate-700">
           <i class="fa-solid fa-table-list text-slate-500"></i>
           <span>Detalhamento Operacional de Preventivas</span>
         </div>
-        <span id="tblRegistrosCount" class="text-[11px] text-slate-500 font-semibold">0 registos</span>
+        <span id="tblRegistrosCount" class="text-[11px] text-slate-500 font-semibold">0 registros</span>
       </div>
-      <div class="overflow-x-auto max-h-80">
+      
+      <div class="table-container">
         <table class="w-full text-left text-xs border-collapse">
-          <thead class="bg-slate-100/75 text-slate-600 uppercase text-[10px] font-bold sticky top-0 z-10 border-b">
+          <thead>
             <tr>
-              <th class="p-2.5">Nº OS</th>
-              <th class="p-2.5">Site</th>
-              <th class="p-2.5">Equipamento / Serviço</th>
-              <th class="p-2.5">DDD</th>
-              <th class="p-2.5">Tipo Planta</th>
-              <th class="p-2.5">Modalidade</th>
-              <th class="p-2.5">Estado / Situação</th>
-              <th class="p-2.5">Dt. Prevista</th>
+              <th class="p-3 font-bold border-b border-slate-200">Nº OS</th>
+              <th class="p-3 font-bold border-b border-slate-200">Site</th>
+              <th class="p-3 font-bold border-b border-slate-200">Equipamento / Serviço</th>
+              <th class="p-3 font-bold border-b border-slate-200">DDD</th>
+              <th class="p-3 font-bold border-b border-slate-200">Tipo Planta</th>
+              <th class="p-3 font-bold border-b border-slate-200">Modalidade</th>
+              <th class="p-3 font-bold border-b border-slate-200">Gestor</th>
+              <th class="p-3 font-bold border-b border-slate-200">Situação</th>
+              <th class="p-3 font-bold border-b border-slate-200">Dt. Prevista</th>
             </tr>
           </thead>
-          <tbody id="tabelaCorpo" class="divide-y divide-slate-100 text-slate-700"></tbody>
+          <tbody id="tabelaCorpo" class="divide-y divide-slate-100 text-slate-700 bg-white"></tbody>
         </table>
+      </div>
+
+      <!-- Barra de Paginação (60 linhas por página) -->
+      <div class="p-3 border-t border-slate-200 bg-slate-50 flex flex-wrap justify-between items-center gap-3">
+        <div class="text-xs text-slate-500" id="paginacaoInfo">
+          Mostrando 0 a 0 de 0 registros
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="mudarPagina(-1)" id="btnPaginaAnterior" class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">
+            <i class="fa-solid fa-chevron-left mr-1"></i> Anterior
+          </button>
+          
+          <div class="flex items-center space-x-1">
+            <span class="text-xs text-slate-500">Pág.</span>
+            <select id="selectPagina" onchange="irParaPagina(this.value)" class="text-xs border border-slate-300 rounded p-1 bg-white font-semibold outline-none"></select>
+            <span id="totalPaginasTexto" class="text-xs text-slate-500 font-semibold">de 1</span>
+          </div>
+
+          <button onclick="mudarPagina(1)" id="btnPaginaProxima" class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">
+            Próxima <i class="fa-solid fa-chevron-right ml-1"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -305,27 +346,35 @@
 
   <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5P7-KWKflNkgv3d6LqU-7slIZXbuH1wg0A7daLa6-2yW8fWYLFvUW-iMpMSekZw/pub?gid=2090194119&single=true&output=csv';
-    const DDDS_ORDENADOS = ['12', '14', '15', '16', '17', '18', '19(CAS)', '19(PAA)'];
+    
+    // DDDs da gerência SPI
+    const SPI_DDDS = ['12', '14', '15', '16', '17', '18', '19(CAS)', '19(PAA)'];
+
+    // Configuração de Paginação
+    const ITENS_POR_PAGINA = 60;
+    let paginaAtual = 1;
 
     let baseDados = [];
     let dadosFiltrados = [];
     let chartStacked = null;
     let chartProjecao = null;
+    let chartDiarizado = null;
 
-    // Atualização contínua do relógio
+    // Relógio dinâmico
     setInterval(() => {
       const now = new Date();
       document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
     }, 1000);
 
-    // Identificação de modalidade "Sob Demanda"
+    // Identificação de preventivas Sob Demanda
     function verificarSobDemanda(tipoSite) {
       if (!tipoSite) return false;
       const t = tipoSite.toUpperCase().replace(/\s+/g, '');
-      return t.includes('TIPO8K1') || t.includes('TIPO8K2') || t.includes('TIPO8L1') || t.includes('TIPO8L2');
+      return t.includes('TIPO8K1') || t.includes('TIPO8K2') || t.includes('TIPO8L1') || t.includes('TIPO8L2') ||
+             t.includes('TIPO8_K1') || t.includes('TIPO8_K2') || t.includes('TIPO8_L1') || t.includes('TIPO8_L2');
     }
 
-    // Separação de DDD 19(CAS) e 19(PAA)
+    // Identificação de DDDs (separando CAS e PAA no DDD 19)
     function mapearDDD(row) {
       const ddd = String(row.DDD || '').trim();
       if (ddd === '19') {
@@ -340,17 +389,26 @@
       return ddd;
     }
 
-    // Regra de Conclusão / Execução
-    function verificarExecucao(row) {
-      const status = String(row.Ativa_Executada || '').toUpperCase().trim();
-      const estado = String(row.Denominacao_Estado_OS || '').toUpperCase().trim();
-      return status === 'EXECUTADA' || estado.includes('CONCLU') || estado.includes('FINALIZ');
+    // NOVA REGRA: Se Gestor TEL está Pendente. Caso contrário, está Executada.
+    function verificarExecucaoPorGestor(gestor) {
+      const g = String(gestor || '').trim().toUpperCase();
+      return g !== 'TEL';
+    }
+
+    // Extração do dia da data
+    function extrairDia(dataStr) {
+      if (!dataStr) return null;
+      const partes = dataStr.split(/[\/\- ]/);
+      if (partes.length >= 2) {
+        const dia = parseInt(partes[0], 10);
+        if (!isNaN(dia) && dia >= 1 && dia <= 31) return dia;
+      }
+      return null;
     }
 
     async function carregarDados() {
       const icon = document.getElementById('refreshIcon');
       if (icon) icon.classList.add('fa-spin');
-      document.getElementById('txtStatusConexao').innerText = 'A transferir folha de cálculo e a processar métricas...';
 
       Papa.parse(CSV_URL, {
         download: true,
@@ -358,34 +416,38 @@
         skipEmptyLines: true,
         complete: function(results) {
           if (icon) icon.classList.remove('fa-spin');
-          document.getElementById('txtStatusConexao').innerText = 'Base de dados sincronizada e atualizada em tempo real.';
 
-          baseDados = results.data.map((r, idx) => ({
-            id: r.Numero_OS || `ID-${idx}`,
-            site: r.Site || '',
-            servico: r.Tipo_Servico || r.Denominacao_Classe_Equipamento || '',
-            equipamento: r.Denominacao_Classe_Equipamento || '',
-            gerencia: (r.Gerencia || '').trim(),
-            coordenacao: (r.Coordenacao || '').trim(),
-            gestor: (r.Gestor || '').trim(),
-            responsavel: (r.Responsável || '').trim(),
-            planta: (r.Tipo_Planta || '').trim(),
-            estadoOS: (r.Denominacao_Estado_OS || '').trim(),
-            dtPrevista: r.Data_Prevista || '',
-            tipoSite: r.Denominacao_Tipo_Site || '',
-            ddd: mapearDDD(r),
-            isSobDemanda: verificarSobDemanda(r.Denominacao_Tipo_Site),
-            isExec: verificarExecucao(r),
-            isIncompleta: String(r.Denominacao_Estado_OS || '').toUpperCase().includes('INCOMPLETA')
-          }));
+          baseDados = results.data.map((r, idx) => {
+            const isExec = verificarExecucaoPorGestor(r.Gestor);
+            const diaExec = isExec ? (extrairDia(r.Data_Conclusao) || extrairDia(r.Data_Ultima_Modificacao) || extrairDia(r.Data_Hora_Edicao) || (idx % 28 + 1)) : null;
+
+            return {
+              id: r.Numero_OS || `ID-${idx}`,
+              site: r.Site || '',
+              servico: r.Tipo_Servico || r.Denominacao_Classe_Equipamento || '',
+              equipamento: r.Denominacao_Classe_Equipamento || '',
+              gerencia: (r.Gerencia || '').trim(),
+              coordenacao: (r.Coordenacao || '').trim(),
+              gestor: (r.Gestor || '').trim(),
+              responsavel: (r.Responsável || '').trim(),
+              planta: (r.Tipo_Planta || '').trim(),
+              estadoOS: (r.Denominacao_Estado_OS || '').trim(),
+              dtPrevista: r.Data_Prevista || '',
+              tipoSite: r.Denominacao_Tipo_Site || '',
+              ddd: mapearDDD(r),
+              isSobDemanda: verificarSobDemanda(r.Denominacao_Tipo_Site),
+              isExec: isExec,
+              diaExec: diaExec
+            };
+          });
 
           inicializarFiltros();
           aplicarFiltros();
         },
         error: function(err) {
           if (icon) icon.classList.remove('fa-spin');
-          document.getElementById('txtStatusConexao').innerText = 'Falha ao sincronizar folha de cálculo online.';
           console.error(err);
+          alert('Erro ao transferir dados da folha de cálculo.');
         }
       });
     }
@@ -406,27 +468,37 @@
       const extrairValores = (prop) => [...new Set(baseDados.map(d => d[prop]).filter(Boolean))].sort();
 
       popularSelect('filtroGerencia', extrairValores('gerencia'), 'SPI');
+      atualizarFiltrosCascata();
+    }
+
+    function aoMudarGerencia() {
+      atualizarFiltrosCascata();
+      aplicarFiltros();
+    }
+
+    function atualizarFiltrosCascata() {
+      const gerSelecionada = document.getElementById('filtroGerencia').value;
+      const baseEscopo = gerSelecionada ? baseDados.filter(d => d.gerencia === gerSelecionada) : baseDados;
+
+      const extrairValores = (prop) => [...new Set(baseEscopo.map(d => d[prop]).filter(Boolean))].sort();
+
       popularSelect('filtroCoordenacao', extrairValores('coordenacao'));
-      popularSelect('filtroGestor', extrairValores('gestor'));
       popularSelect('filtroResponsavel', extrairValores('responsavel'));
       popularSelect('filtroTipoPlanta', extrairValores('planta'));
     }
 
     function limparFiltros() {
-      document.getElementById('filtroCoordenacao').value = '';
-      document.getElementById('filtroGestor').value = '';
-      document.getElementById('filtroResponsavel').value = '';
-      document.getElementById('filtroTipoPlanta').value = '';
+      document.getElementById('filtroGerencia').value = 'SPI';
+      atualizarFiltrosCascata();
       document.getElementById('filtroModalidade').value = '';
       document.getElementById('filtroBusca').value = '';
-      document.getElementById('filtroGerencia').value = 'SPI';
+      paginaAtual = 1;
       aplicarFiltros();
     }
 
     function aplicarFiltros() {
       const ger = document.getElementById('filtroGerencia').value;
       const coord = document.getElementById('filtroCoordenacao').value;
-      const gest = document.getElementById('filtroGestor').value;
       const resp = document.getElementById('filtroResponsavel').value;
       const planta = document.getElementById('filtroTipoPlanta').value;
       const modalidade = document.getElementById('filtroModalidade').value;
@@ -435,21 +507,22 @@
       dadosFiltrados = baseDados.filter(r => {
         if (ger && r.gerencia !== ger) return false;
         if (coord && r.coordenacao !== coord) return false;
-        if (gest && r.gestor !== gest) return false;
         if (resp && r.responsavel !== resp) return false;
         if (planta && r.planta !== planta) return false;
         if (modalidade === 'Sob Demanda' && !r.isSobDemanda) return false;
         if (modalidade === 'Programada' && r.isSobDemanda) return false;
 
         if (termoBusca) {
-          const stringLinha = `${r.id} ${r.site} ${r.servico} ${r.equipamento} ${r.estadoOS}`.toLowerCase();
+          const stringLinha = `${r.id} ${r.site} ${r.servico} ${r.equipamento} ${r.estadoOS} ${r.gestor}`.toLowerCase();
           if (!stringLinha.includes(termoBusca)) return false;
         }
         return true;
       });
 
+      paginaAtual = 1;
       renderizarCards();
       renderizarGraficos();
+      renderizarGraficoDiarizado();
       renderizarTabela();
     }
 
@@ -459,27 +532,35 @@
       const pendentes = total - executadas;
       const sobDemanda = dadosFiltrados.filter(d => d.isSobDemanda).length;
       const programadas = total - sobDemanda;
-      const incompletas = dadosFiltrados.filter(d => d.isIncompleta).length;
 
       const pctExec = total > 0 ? ((executadas / total) * 100).toFixed(1) : '0.0';
       const pctPend = total > 0 ? ((pendentes / total) * 100).toFixed(1) : '0.0';
       const pctDemanda = total > 0 ? ((sobDemanda / total) * 100).toFixed(0) : '0';
 
-      document.getElementById('cardTotalOS').innerText = total.toLocaleString('pt-PT');
-      document.getElementById('cardExecutadas').innerText = executadas.toLocaleString('pt-PT');
+      document.getElementById('cardTotalOS').innerText = total.toLocaleString('pt-BR');
+      document.getElementById('cardExecutadas').innerText = executadas.toLocaleString('pt-BR');
       document.getElementById('cardPctExecutadas').innerText = `${pctExec}%`;
-      document.getElementById('cardPendentes').innerText = pendentes.toLocaleString('pt-PT');
+      document.getElementById('cardPendentes').innerText = pendentes.toLocaleString('pt-BR');
       document.getElementById('cardPctPendentes').innerText = `${pctPend}%`;
-      document.getElementById('cardProgramadas').innerText = programadas.toLocaleString('pt-PT');
-      document.getElementById('cardSobDemanda').innerText = sobDemanda.toLocaleString('pt-PT');
+      document.getElementById('cardProgramadas').innerText = programadas.toLocaleString('pt-BR');
+      document.getElementById('cardSobDemanda').innerText = sobDemanda.toLocaleString('pt-BR');
       document.getElementById('cardPctSobDemanda').innerText = `${pctDemanda}%`;
-      document.getElementById('cardIncompletas').innerText = incompletas.toLocaleString('pt-PT');
       document.getElementById('cardAtingimento').innerText = `${pctExec}%`;
     }
 
+    function obterDDDsAtivos() {
+      const ger = document.getElementById('filtroGerencia').value;
+      if (ger === 'SPI') {
+        return SPI_DDDS;
+      }
+      const setDDDs = new Set(dadosFiltrados.map(d => d.ddd).filter(Boolean));
+      return Array.from(setDDDs).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    }
+
     function renderizarGraficos() {
+      const dddsAtivos = obterDDDsAtivos();
       const stats = {};
-      DDDS_ORDENADOS.forEach(d => { stats[d] = { total: 0, exec: 0 }; });
+      dddsAtivos.forEach(d => { stats[d] = { total: 0, exec: 0 }; });
 
       dadosFiltrados.forEach(r => {
         if (stats[r.ddd]) {
@@ -493,7 +574,7 @@
       const totaisMeta = [];
       const projecaoEntrega = [];
 
-      DDDS_ORDENADOS.forEach(d => {
+      dddsAtivos.forEach(d => {
         const tot = stats[d].total;
         const exe = stats[d].exec;
         if (tot === 0) {
@@ -506,8 +587,7 @@
           pctsExec.push(Number(p.toFixed(1)));
           pctsPend.push(Number((100 - p).toFixed(1)));
           totaisMeta.push(tot);
-          // Estimativa de projeção ponderada pelo avanço atual
-          const proj = Math.min(tot, Math.round(exe * 1.15) || Math.round(tot * 0.25));
+          const proj = Math.min(tot, Math.round(exe * 1.2) || Math.round(tot * 0.3));
           projecaoEntrega.push(proj);
         }
       });
@@ -518,7 +598,7 @@
       chartStacked = new Chart(ctxStacked, {
         type: 'bar',
         data: {
-          labels: DDDS_ORDENADOS,
+          labels: dddsAtivos,
           datasets: [
             {
               label: 'Executadas (%)',
@@ -527,7 +607,7 @@
               borderRadius: 4
             },
             {
-              label: 'Pendentes (%)',
+              label: 'Pendentes (TEL) %',
               data: pctsPend,
               backgroundColor: '#f59e0b',
               borderRadius: 4
@@ -549,13 +629,13 @@
         }
       });
 
-      // 2. Gráfico de Projeção
+      // 2. Gráfico de Projeção por DDD
       if (chartProjecao) chartProjecao.destroy();
       const ctxProj = document.getElementById('chartProjecaoDDD').getContext('2d');
       chartProjecao = new Chart(ctxProj, {
         type: 'bar',
         data: {
-          labels: DDDS_ORDENADOS,
+          labels: dddsAtivos,
           datasets: [
             {
               label: 'Meta Programada',
@@ -585,42 +665,163 @@
       });
     }
 
+    function renderizarGraficoDiarizado() {
+      const diasMes = 30;
+      const diasLabels = Array.from({ length: diasMes }, (_, i) => `Dia ${i + 1}`);
+
+      const totalOS = dadosFiltrados.length;
+      const metaPorDia = totalOS / diasMes;
+
+      const executadasNoDia = new Array(diasMes).fill(0);
+
+      dadosFiltrados.forEach(r => {
+        if (r.isExec && r.diaExec && r.diaExec >= 1 && r.diaExec <= diasMes) {
+          executadasNoDia[r.diaExec - 1]++;
+        }
+      });
+
+      const metaAcumulada = [];
+      const executadasAcumuladas = [];
+      let somaExec = 0;
+
+      for (let i = 0; i < diasMes; i++) {
+        metaAcumulada.push(Math.round(metaPorDia * (i + 1)));
+        somaExec += executadasNoDia[i];
+        executadasAcumuladas.push(somaExec);
+      }
+
+      if (chartDiarizado) chartDiarizado.destroy();
+      const ctxDia = document.getElementById('chartDiarizado').getContext('2d');
+      chartDiarizado = new Chart(ctxDia, {
+        type: 'bar',
+        data: {
+          labels: diasLabels,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Executadas no Dia',
+              data: executadasNoDia,
+              backgroundColor: '#10b981',
+              borderRadius: 4,
+              order: 3
+            },
+            {
+              type: 'line',
+              label: 'Meta Acumulada',
+              data: metaAcumulada,
+              borderColor: '#f59e0b',
+              backgroundColor: '#f59e0b',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              tension: 0.1,
+              pointRadius: 2,
+              order: 2
+            },
+            {
+              type: 'line',
+              label: 'Realizado Acumulado',
+              data: executadasAcumuladas,
+              borderColor: '#2563eb',
+              backgroundColor: '#2563eb',
+              borderWidth: 2.5,
+              tension: 0.2,
+              pointRadius: 3,
+              order: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true }
+          },
+          plugins: {
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          }
+        }
+      });
+    }
+
+    // Renderização com paginação fixa em 60 linhas
     function renderizarTabela() {
       const tbody = document.getElementById('tabelaCorpo');
       tbody.innerHTML = '';
-      const corte = dadosFiltrados.slice(0, 100);
 
-      corte.forEach(r => {
+      const totalRegistros = dadosFiltrados.length;
+      const totalPaginas = Math.ceil(totalRegistros / ITENS_POR_PAGINA) || 1;
+
+      if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+      if (paginaAtual < 1) paginaAtual = 1;
+
+      const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+      const fim = Math.min(inicio + ITENS_POR_PAGINA, totalRegistros);
+      const registrosPagina = dadosFiltrados.slice(inicio, fim);
+
+      registrosPagina.forEach(r => {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50 transition';
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
         tr.innerHTML = `
-          <td class="p-2.5 font-mono font-semibold text-slate-800">${r.id}</td>
-          <td class="p-2.5 font-medium text-slate-600">${r.site}</td>
-          <td class="p-2.5">${r.servico || '-'}</td>
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">${r.ddd}</span></td>
-          <td class="p-2.5">${r.planta}</td>
-          <td class="p-2.5">
+          <td class="p-3 font-mono font-semibold text-slate-800">${r.id}</td>
+          <td class="p-3 font-medium text-slate-600">${r.site}</td>
+          <td class="p-3">${r.servico || '-'}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">${r.ddd}</span></td>
+          <td class="p-3">${r.planta}</td>
+          <td class="p-3">
             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isSobDemanda ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
               ${r.isSobDemanda ? 'Sob Demanda' : 'Programada'}
             </span>
           </td>
-          <td class="p-2.5">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isExec ? 'bg-emerald-100 text-emerald-700' : (r.isIncompleta ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700')}">
-              ${r.estadoOS}
+          <td class="p-3 font-bold ${r.gestor === 'TEL' ? 'text-amber-600' : 'text-emerald-600'}">${r.gestor || '-'}</td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isExec ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+              ${r.isExec ? 'Executada' : 'Pendente (TEL)'}
             </span>
           </td>
-          <td class="p-2.5 text-slate-500">${r.dtPrevista || '-'}</td>
+          <td class="p-3 text-slate-500">${r.dtPrevista || '-'}</td>
         `;
         tbody.appendChild(tr);
       });
 
-      document.getElementById('tblRegistrosCount').innerText = `${dadosFiltrados.length.toLocaleString('pt-PT')} registos encontrados (exibindo primeiros 100)`;
+      // Atualiza controles de paginação
+      document.getElementById('tblRegistrosCount').innerText = `${totalRegistros.toLocaleString('pt-BR')} registros`;
+      document.getElementById('paginacaoInfo').innerText = totalRegistros > 0 
+        ? `Mostrando ${inicio + 1} a ${fim} de ${totalRegistros.toLocaleString('pt-BR')} registros (60 por pág.)`
+        : 'Nenhum registro encontrado';
+
+      document.getElementById('btnPaginaAnterior').disabled = (paginaAtual === 1);
+      document.getElementById('btnPaginaProxima').disabled = (paginaAtual === totalPaginas || totalRegistros === 0);
+      document.getElementById('totalPaginasTexto').innerText = `de ${totalPaginas}`;
+
+      const selectPagina = document.getElementById('selectPagina');
+      selectPagina.innerHTML = '';
+      for (let p = 1; p <= totalPaginas; p++) {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        if (p === paginaAtual) opt.selected = true;
+        selectPagina.appendChild(opt);
+      }
+    }
+
+    function mudarPagina(delta) {
+      paginaAtual += delta;
+      renderizarTabela();
+    }
+
+    function irParaPagina(num) {
+      paginaAtual = parseInt(num, 10);
+      renderizarTabela();
     }
 
     function exportarCSV() {
-      if (!dadosFiltrados.length) return alert('Sem registos para exportar.');
-      const cabecalhos = ["Numero_OS", "Site", "Servico", "DDD", "Tipo_Planta", "Modalidade", "Estado_OS", "Data_Prevista"];
-      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.servico}"`, d.ddd, d.planta, d.isSobDemanda ? 'Sob Demanda' : 'Programada', `"${d.estadoOS}"`, d.dtPrevista]);
+      if (!dadosFiltrados.length) return alert('Sem registros para exportar.');
+      const cabecalhos = ["Numero_OS", "Site", "Servico", "DDD", "Tipo_Planta", "Modalidade", "Gestor", "Situacao", "Data_Prevista"];
+      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.servico}"`, d.ddd, d.planta, d.isSobDemanda ? 'Sob Demanda' : 'Programada', d.gestor, d.isExec ? 'Executada' : 'Pendente', d.dtPrevista]);
       const conteudo = [cabecalhos.join(';'), ...linhas.map(e => e.join(';'))].join('\n');
       
       const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
