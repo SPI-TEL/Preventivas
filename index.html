@@ -36,9 +36,7 @@
     .kpi-purple::before { background: #a855f7; }
     .kpi-emerald::before { background: #10b981; }
     .kpi-amber::before { background: #f59e0b; }
-    .kpi-rose::before { background: #ef4444; }
-
-    /* Destaque especial vermelho para Recusadas */
+    
     .kpi-recusadas {
       background: linear-gradient(180deg, #ffffff 0%, #fef2f2 100%);
       border: 1px solid #fecaca;
@@ -48,9 +46,52 @@
       height: 4px;
     }
 
-    /* Fixação e opacidade do cabeçalho da tabela */
+    /* Estilo da Tabela de Projeção (Idêntico ao Modelo da Imagem 1) */
+    .tabela-projecao {
+      border-collapse: separate;
+      border-spacing: 0 3px;
+    }
+    .tabela-projecao thead th {
+      background-color: #d1d5db; /* Cinza do cabeçalho */
+      color: #111827;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 6px 12px;
+      text-align: right;
+    }
+    .tabela-projecao thead th:first-child {
+      text-align: center;
+      width: 35%;
+    }
+    .tabela-projecao tbody td {
+      padding: 5px 12px;
+      font-size: 12px;
+      font-family: monospace;
+      font-weight: 700;
+      text-align: right;
+    }
+    .tabela-projecao tbody td:first-child {
+      font-family: 'Inter', sans-serif;
+      text-align: center;
+      font-weight: 700;
+      background: #ffffff;
+      color: #1e293b;
+    }
+
+    /* Linha divisória tracejada (como no print) */
+    .linha-destaque-top {
+      border-top: 1.5px dotted #64748b;
+    }
+
+    /* Cores das células de Realizado da Imagem 1 */
+    .bg-real-verde { background-color: #86efac; color: #064e3b; }   /* >= 80% */
+    .bg-real-roxo  { background-color: #d8b4fe; color: #3b0764; }   /* 70% a 79.99% */
+    .bg-real-vermelho { background-color: #fca5a5; color: #7f1d1d; }/* < 70% */
+    .bg-proj-padrao { background-color: #f8fafc; color: #334155; }
+
+    /* Fixação e rolagem suave das tabelas */
     .table-container {
-      max-height: 580px;
+      max-height: 540px;
       overflow-y: auto;
     }
     .table-container thead th {
@@ -174,10 +215,10 @@
           <span id="cardSobDemanda" class="text-2xl font-black text-purple-600">0</span>
           <span id="cardPctSobDemanda" class="text-[10px] font-bold text-purple-500 bg-purple-50 px-1 rounded">0%</span>
         </div>
-        <p class="text-[10px] text-slate-400 font-medium">Tipo 8 (K1, K2, L1, L2)</p>
+        <p class="text-[10px] text-slate-400 font-medium">K1, K2, L1 e L2</p>
       </div>
 
-      <!-- CARD RECUSADAS (EM DESTAQUE VERMELHO) -->
+      <!-- Recusadas -->
       <div class="card-kpi kpi-recusadas p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-[11px] font-black uppercase tracking-wider text-red-600">Recusadas</span>
@@ -252,38 +293,66 @@
       </div>
     </div>
 
-    <!-- GRÁFICOS: BARRAS EMPILHADAS + PROJEÇÃO POR DDD -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <!-- Gráfico 1: Barras Empilhadas 100% -->
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+    <!-- SEÇÃO DE GRÁFICOS E TABELA DE PROJEÇÃO (3 COLUNAS EM TELAS LARGAS) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      
+      <!-- Gráfico 1: Barras Empilhadas 100% (5 colunas) -->
+      <div class="lg:col-span-5 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center space-x-2">
             <i class="fa-solid fa-chart-column text-teal-600"></i>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Preventivas por DDD da Gerência (Empilhado 100%)</h3>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Preventivas por DDD (Empilhado 100%)</h3>
           </div>
-          <span class="text-[10px] text-slate-400 uppercase font-semibold">Executadas vs Pendentes (TEL)</span>
+          <span class="text-[10px] text-slate-400 uppercase font-semibold">Executadas vs Pendentes</span>
         </div>
         <div class="relative h-64">
           <canvas id="chartStackedDDD"></canvas>
         </div>
       </div>
 
-      <!-- Gráfico 2: Projeção por DDD -->
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex justify-between items-center mb-3">
+      <!-- Tabela Projeção por DDD - IDÊNTICA À IMAGEM 1 (3 colunas) -->
+      <div class="lg:col-span-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div class="flex justify-between items-center mb-2">
           <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-chart-line text-blue-600"></i>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Projeção de Cumprimento por DDD</h3>
+            <i class="fa-solid fa-table text-slate-700"></i>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Projeção por DDD</h3>
           </div>
-          <span class="text-[10px] text-slate-400 uppercase font-semibold">Programadas vs Estimativa Final</span>
+          <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">Meta 100%</span>
         </div>
-        <div class="relative h-64">
-          <canvas id="chartProjecaoDDD"></canvas>
+
+        <div class="overflow-x-auto flex-1 flex flex-col justify-center">
+          <table class="w-full tabela-projecao">
+            <thead>
+              <tr>
+                <th>DDD</th>
+                <th>Realizado</th>
+                <th>Projeção</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaProjecaoCorpo">
+              <!-- Preenchido via JavaScript -->
+            </tbody>
+          </table>
         </div>
       </div>
+
+      <!-- Gráfico 3: Detalhamento Sob Demanda (4 Tipos) (4 colunas) -->
+      <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div class="flex justify-between items-center mb-3">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-microchip text-purple-600"></i>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Sob Demanda (4 Tipos)</h3>
+          </div>
+          <span class="text-[10px] text-purple-600 bg-purple-50 px-2 py-0.5 rounded font-bold">K1, K2, L1, L2</span>
+        </div>
+        <div class="relative h-64">
+          <canvas id="chartSobDemandaTipos"></canvas>
+        </div>
+      </div>
+
     </div>
 
-    <!-- GRÁFICO EVOLUTIVO FUTURISTA (ESTILO MONITORAMENTO EM TEMPO REAL) -->
+    <!-- GRÁFICO EVOLUTIVO FUTURISTA -->
     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
       <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
         <div class="flex items-center space-x-2">
@@ -331,7 +400,7 @@
         </table>
       </div>
 
-      <!-- Barra de Paginação (60 linhas por página) -->
+      <!-- Barra de Paginação (60 linhas) -->
       <div class="p-3 border-t border-slate-200 bg-slate-50 flex flex-wrap justify-between items-center gap-3">
         <div class="text-xs text-slate-500" id="paginacaoInfo">
           Mostrando 0 a 0 de 0 registros
@@ -358,7 +427,9 @@
 
   <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5P7-KWKflNkgv3d6LqU-7slIZXbuH1wg0A7daLa6-2yW8fWYLFvUW-iMpMSekZw/pub?gid=2090194119&single=true&output=csv';
-    const SPI_DDDS = ['12', '14', '15', '16', '17', '18', '19(CAS)', '19(PAA)'];
+    
+    // Ordem exata dos DDDs da imagem 1
+    const SPI_DDDS_EXATO = ['12', '15', '14', '18', '16', '17', '[CAS] 19', '[PAA] 19'];
 
     const ITENS_POR_PAGINA = 60;
     let paginaAtual = 1;
@@ -366,7 +437,7 @@
     let baseDados = [];
     let dadosFiltrados = [];
     let chartStacked = null;
-    let chartProjecao = null;
+    let chartSobDemanda = null;
     let chartDiarizado = null;
 
     setInterval(() => {
@@ -374,19 +445,23 @@
       document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
     }, 1000);
 
-    function verificarSobDemanda(tipoSite) {
-      if (!tipoSite) return false;
-      const t = tipoSite.toUpperCase().replace(/\s+/g, '');
-      return t.includes('TIPO8K1') || t.includes('TIPO8K2') || t.includes('TIPO8L1') || t.includes('TIPO8L2') ||
-             t.includes('TIPO8_K1') || t.includes('TIPO8_K2') || t.includes('TIPO8_L1') || t.includes('TIPO8_L2');
+    // Mapeamento dos 4 tipos de Sob Demanda
+    function obterSubtipoDemanda(tipoSite) {
+      if (!tipoSite) return null;
+      const t = tipoSite.toUpperCase().replace(/\s+|_/g, '');
+      if (t.includes('TIPO8K1')) return 'Tipo 8 K1';
+      if (t.includes('TIPO8K2')) return 'Tipo 8 K2';
+      if (t.includes('TIPO8L1')) return 'Tipo 8 L1';
+      if (t.includes('TIPO8L2')) return 'Tipo 8 L2';
+      return null;
     }
 
-    // Identificação de Recusadas (Serviço Recusado)
     function verificarRecusada(estado, descEstado) {
       const txt = `${estado || ''} ${descEstado || ''}`.toUpperCase();
       return txt.includes('RECUSAD') || txt.includes('SERVICO RECUSADO') || txt.includes('SERVIÇO RECUSADO');
     }
 
+    // Mapeamento exato de rótulo para DDD (conforme Imagem 1: [CAS] 19 e [PAA] 19)
     function mapearDDD(row) {
       const ddd = String(row.DDD || '').trim();
       if (ddd === '19') {
@@ -394,35 +469,27 @@
         const un = String(row.Unidade_Negocio || '').toUpperCase();
         const resp = String(row.Responsável || '').toUpperCase();
         if (coord.includes('PAA') || un.includes('PAA') || resp.includes('PAA')) {
-          return '19(PAA)';
+          return '[PAA] 19';
         }
-        return '19(CAS)';
+        return '[CAS] 19';
       }
       return ddd;
     }
 
-    // Regra: Gestor TEL = Pendente. Caso contrário = Executada.
     function verificarExecucaoPorGestor(gestor) {
       const g = String(gestor || '').trim().toUpperCase();
       return g !== 'TEL' && g !== '';
     }
 
-    // Parser robusto de data para evitar agrupar tudo no mesmo dia
     function extrairDiaCorreto(dataStr) {
       if (!dataStr || typeof dataStr !== 'string') return null;
-      const limpo = dataStr.trim().split(' ')[0]; // remove hora se houver
+      const limpo = dataStr.trim().split(' ')[0];
       const partes = limpo.split(/[\/\-.]/);
       if (partes.length >= 3) {
         const p0 = parseInt(partes[0], 10);
         const p1 = parseInt(partes[1], 10);
-        // Se a primeira parte for dia (ex: 29/09/2026)
-        if (p0 >= 1 && p0 <= 31 && p1 >= 1 && p1 <= 12) {
-          return p0;
-        }
-        // Se a data estiver no formato MM/DD/YYYY
-        if (p1 >= 1 && p1 <= 31 && p0 >= 1 && p0 <= 12) {
-          return p1;
-        }
+        if (p0 >= 1 && p0 <= 31 && p1 >= 1 && p1 <= 12) return p0;
+        if (p1 >= 1 && p1 <= 31 && p0 >= 1 && p0 <= 12) return p1;
       }
       return null;
     }
@@ -441,14 +508,13 @@
           baseDados = results.data.map((r, idx) => {
             const isExec = verificarExecucaoPorGestor(r.Gestor);
             const isRec = verificarRecusada(r.Estado_OS, r.Denominacao_Estado_OS);
+            const subtipoDemanda = obterSubtipoDemanda(r.Denominacao_Tipo_Site);
 
-            // Extrai o dia exato da data de conclusão, modificação ou criação
             let diaRef = extrairDiaCorreto(r.Data_Conclusao) || 
                          extrairDiaCorreto(r.Data_Ultima_Modificacao) || 
                          extrairDiaCorreto(r.Data_Hora_Edicao) || 
                          extrairDiaCorreto(r.Data_Criacao);
             
-            // Distribuição balanceada caso a linha não possua data específica preenchida
             if (!diaRef) {
               diaRef = ((idx * 7 + 3) % 30) + 1;
             }
@@ -467,7 +533,8 @@
               dtPrevista: r.Data_Prevista || '',
               tipoSite: r.Denominacao_Tipo_Site || '',
               ddd: mapearDDD(r),
-              isSobDemanda: verificarSobDemanda(r.Denominacao_Tipo_Site),
+              subtipoDemanda: subtipoDemanda,
+              isSobDemanda: subtipoDemanda !== null,
               isExec: isExec,
               isRecusada: isRec,
               diaRef: diaRef
@@ -480,7 +547,7 @@
         error: function(err) {
           if (icon) icon.classList.remove('fa-spin');
           console.error(err);
-          alert('Erro ao carregar a folha de cálculo.');
+          alert('Erro ao carregar a planilha.');
         }
       });
     }
@@ -556,6 +623,8 @@
       paginaAtual = 1;
       renderizarCards();
       renderizarGraficos();
+      renderizarTabelaProjecao();
+      renderizarGraficoSobDemanda();
       renderizarGraficoFuturista();
       renderizarTabela();
     }
@@ -580,22 +649,21 @@
       document.getElementById('cardSobDemanda').innerText = sobDemanda.toLocaleString('pt-BR');
       document.getElementById('cardPctSobDemanda').innerText = `${pctDemanda}%`;
       
-      // CARD RECUSADAS EM DESTAQUE
       document.getElementById('cardRecusadas').innerText = recusadas.toLocaleString('pt-BR');
       document.getElementById('cardPctRecusadas').innerText = `${pctRecusada}%`;
-
       document.getElementById('cardAtingimento').innerText = `${pctExec}%`;
     }
 
     function obterDDDsAtivos() {
       const ger = document.getElementById('filtroGerencia').value;
       if (ger === 'SPI') {
-        return SPI_DDDS;
+        return SPI_DDDS_EXATO;
       }
       const setDDDs = new Set(dadosFiltrados.map(d => d.ddd).filter(Boolean));
       return Array.from(setDDDs).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     }
 
+    // 1. Barras Empilhadas 100%
     function renderizarGraficos() {
       const dddsAtivos = obterDDDsAtivos();
       const stats = {};
@@ -610,8 +678,6 @@
 
       const pctsExec = [];
       const pctsPend = [];
-      const totaisMeta = [];
-      const projecaoEntrega = [];
 
       dddsAtivos.forEach(d => {
         const tot = stats[d].total;
@@ -619,19 +685,13 @@
         if (tot === 0) {
           pctsExec.push(0);
           pctsPend.push(0);
-          totaisMeta.push(0);
-          projecaoEntrega.push(0);
         } else {
           const p = (exe / tot) * 100;
           pctsExec.push(Number(p.toFixed(1)));
           pctsPend.push(Number((100 - p).toFixed(1)));
-          totaisMeta.push(tot);
-          const proj = Math.min(tot, Math.round(exe * 1.2) || Math.round(tot * 0.3));
-          projecaoEntrega.push(proj);
         }
       });
 
-      // 1. Barras Empilhadas 100%
       if (chartStacked) chartStacked.destroy();
       const ctxStacked = document.getElementById('chartStackedDDD').getContext('2d');
       chartStacked = new Chart(ctxStacked, {
@@ -667,30 +727,88 @@
           }
         }
       });
+    }
 
-      // 2. Gráfico de Projeção por DDD
-      if (chartProjecao) chartProjecao.destroy();
-      const ctxProj = document.getElementById('chartProjecaoDDD').getContext('2d');
-      chartProjecao = new Chart(ctxProj, {
+    // 2. TABELA DE PROJEÇÃO POR DDD (IDÊNTICA À IMAGEM 1)
+    function renderizarTabelaProjecao() {
+      const tbody = document.getElementById('tabelaProjecaoCorpo');
+      tbody.innerHTML = '';
+
+      const dddsAtivos = obterDDDsAtivos();
+      const stats = {};
+      dddsAtivos.forEach(d => { stats[d] = { total: 0, exec: 0 }; });
+
+      dadosFiltrados.forEach(r => {
+        if (stats[r.ddd]) {
+          stats[r.ddd].total++;
+          if (r.isExec) stats[r.ddd].exec++;
+        }
+      });
+
+      dddsAtivos.forEach((ddd, index) => {
+        const tot = stats[ddd].total;
+        const exe = stats[ddd].exec;
+        
+        let pctNum = tot > 0 ? (exe / tot) * 100 : 0;
+        let pctFormatada = pctNum.toFixed(2).replace('.', ',') + '%';
+
+        // Definição de cores idêntica à Imagem 1
+        let corClasse = 'bg-real-verde';
+        if (pctNum < 70) {
+          corClasse = 'bg-real-vermelho';
+        } else if (pctNum < 80) {
+          corClasse = 'bg-real-roxo';
+        }
+
+        // Borda divisória pontilhada conforme observado no print após o DDD 15
+        const tr = document.createElement('tr');
+        if (index === 2) {
+          tr.className = 'linha-destaque-top';
+        }
+
+        tr.innerHTML = `
+          <td>${ddd}</td>
+          <td class="${corClasse}">${pctFormatada}</td>
+          <td class="bg-proj-padrao">100,00%</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 3. GRÁFICO SOB DEMANDA DETALHADO PELOS 4 TIPOS (K1, K2, L1, L2)
+    function renderizarGraficoSobDemanda() {
+      const tipos = ['Tipo 8 K1', 'Tipo 8 K2', 'Tipo 8 L1', 'Tipo 8 L2'];
+      const contagemExec = [0, 0, 0, 0];
+      const contagemPend = [0, 0, 0, 0];
+
+      dadosFiltrados.forEach(r => {
+        if (r.isSobDemanda && r.subtipoDemanda) {
+          const idx = tipos.indexOf(r.subtipoDemanda);
+          if (idx !== -1) {
+            if (r.isExec) contagemExec[idx]++;
+            else contagemPend[idx]++;
+          }
+        }
+      });
+
+      if (chartSobDemanda) chartSobDemanda.destroy();
+      const ctx = document.getElementById('chartSobDemandaTipos').getContext('2d');
+      chartSobDemanda = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: dddsAtivos,
+          labels: ['K1', 'K2', 'L1', 'L2'],
           datasets: [
             {
-              label: 'Meta Programada',
-              data: totaisMeta,
-              backgroundColor: '#cbd5e1',
+              label: 'Executadas',
+              data: contagemExec,
+              backgroundColor: '#8b5cf6',
               borderRadius: 4
             },
             {
-              type: 'line',
-              label: 'Projeção Final Estimada',
-              data: projecaoEntrega,
-              borderColor: '#2563eb',
-              backgroundColor: '#2563eb',
-              borderWidth: 2,
-              tension: 0.3,
-              pointRadius: 4
+              label: 'Pendentes (TEL)',
+              data: contagemPend,
+              backgroundColor: '#cbd5e1',
+              borderRadius: 4
             }
           ]
         },
@@ -698,13 +816,21 @@
           responsive: true,
           maintainAspectRatio: false,
           scales: {
+            x: { grid: { display: false } },
             y: { beginAtZero: true }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                title: (items) => tipos[items[0].dataIndex]
+              }
+            }
           }
         }
       });
     }
 
-    // GRÁFICO EVOLUTIVO FUTURISTA (ESTILO SPLINE AREA + MICROBARS)
+    // 4. GRÁFICO EVOLUTIVO FUTURISTA
     function renderizarGraficoFuturista() {
       const diasMes = 31;
       const labels = Array.from({ length: diasMes }, (_, i) => `${i + 1}/10`);
@@ -736,7 +862,6 @@
       if (chartDiarizado) chartDiarizado.destroy();
       const ctx = document.getElementById('chartDiarizado').getContext('2d');
 
-      // Gradiente translúcido neon para o fundo futurista
       const gradientBlue = ctx.createLinearGradient(0, 0, 0, 260);
       gradientBlue.addColorStop(0, 'rgba(37, 99, 235, 0.35)');
       gradientBlue.addColorStop(0.8, 'rgba(37, 99, 235, 0.03)');
@@ -838,6 +963,7 @@
       });
     }
 
+    // 5. TABELA ANALÍTICA COM PAGINAÇÃO DE 60 LINHAS
     function renderizarTabela() {
       const tbody = document.getElementById('tabelaCorpo');
       tbody.innerHTML = '';
@@ -863,7 +989,7 @@
           <td class="p-3">${r.planta}</td>
           <td class="p-3">
             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isSobDemanda ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
-              ${r.isSobDemanda ? 'Sob Demanda' : 'Programada'}
+              ${r.isSobDemanda ? r.subtipoDemanda : 'Programada'}
             </span>
           </td>
           <td class="p-3 font-bold ${r.gestor === 'TEL' ? 'text-amber-600' : 'text-emerald-600'}">${r.gestor || '-'}</td>
@@ -910,7 +1036,7 @@
     function exportarCSV() {
       if (!dadosFiltrados.length) return alert('Sem registros para exportar.');
       const cabecalhos = ["Numero_OS", "Site", "Servico", "DDD", "Tipo_Planta", "Modalidade", "Gestor", "Situacao", "Data_Prevista"];
-      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.servico}"`, d.ddd, d.planta, d.isSobDemanda ? 'Sob Demanda' : 'Programada', d.gestor, d.isRecusada ? 'Recusada' : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
+      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.servico}"`, d.ddd, d.planta, d.isSobDemanda ? d.subtipoDemanda : 'Programada', d.gestor, d.isRecusada ? 'Recusada' : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
       const conteudo = [cabecalhos.join(';'), ...linhas.map(e => e.join(';'))].join('\n');
       
       const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
