@@ -85,7 +85,6 @@
     .bg-real-verde { background-color: #86efac; color: #064e3b; }
     .bg-real-roxo  { background-color: #d8b4fe; color: #3b0764; }
     .bg-real-vermelho { background-color: #fca5a5; color: #7f1d1d; }
-    .bg-proj-padrao { background-color: #f8fafc; color: #334155; }
 
     .table-container {
       max-height: 540px;
@@ -153,8 +152,8 @@
         <span id="txtStatusConexao">Gestor TEL = Pendente | VIVO/Outros = Executada | Recusadas = Serviço Recusado.</span>
       </div>
       <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200 font-semibold">
-        <i class="fa-solid fa-calculator text-amber-500"></i>
-        <span>Projeção Calibrada: Considera Ritmo Real, Pendências e Dedução de Recusas</span>
+        <i class="fa-solid fa-chart-pie text-amber-500"></i>
+        <span>Projeção Calibrada por DDD e Detalhamento Sob Demanda Ativos</span>
       </div>
     </div>
 
@@ -276,7 +275,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO PRINCIPAL DE GRÁFICOS (DDD, PROJEÇÃO E REGIONAL) -->
+    <!-- SEÇÃO PRINCIPAL DE GRÁFICOS: DDD, PROJEÇÃO E SOB DEMANDA (4 TIPOS) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       
       <!-- Gráfico 1: Barras Empilhadas 100% por DDD (5 colunas) -->
@@ -293,7 +292,7 @@
         </div>
       </div>
 
-      <!-- Tabela Projeção por DDD (3.5 colunas) -->
+      <!-- Tabela Projeção por DDD com Coloração Condicional em Realizado e Projeção (3 colunas) -->
       <div class="lg:col-span-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-2">
           <div class="flex items-center space-x-2">
@@ -317,16 +316,17 @@
         </div>
       </div>
 
-      <!-- Gráfico 2: ACOMPANHAMENTO POR REGIONAL (Sem o texto "Maior execução no topo") -->
+      <!-- Gráfico 3: Detalhamento Sob Demanda (4 Tipos) (4 colunas) -->
       <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-align-left text-blue-600"></i>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Acompanhamento por Regional</h3>
+            <i class="fa-solid fa-microchip text-purple-600"></i>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Sob Demanda (4 Tipos)</h3>
           </div>
+          <span class="text-[10px] text-purple-600 bg-purple-50 px-2 py-0.5 rounded font-bold">K1, K2, L1, L2</span>
         </div>
         <div class="relative h-64">
-          <canvas id="chartRegionaisHorizontal"></canvas>
+          <canvas id="chartSobDemandaTipos"></canvas>
         </div>
       </div>
 
@@ -415,7 +415,7 @@
     let baseDados = [];
     let dadosFiltrados = [];
     let chartStacked = null;
-    let chartRegionais = null;
+    let chartSobDemanda = null;
     let chartDiarizado = null;
 
     setInterval(() => {
@@ -600,7 +600,7 @@
       renderizarCards();
       renderizarGraficos();
       renderizarTabelaProjecao();
-      renderizarGraficoRegionaisHorizontal();
+      renderizarGraficoSobDemanda();
       renderizarGraficoFuturista();
       renderizarTabela();
     }
@@ -639,7 +639,7 @@
       return Array.from(setDDDs).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     }
 
-    // 1. Barras Empilhadas 100% (Pendentes na cor LARANJA #f59e0b)
+    // 1. Barras Empilhadas 100% (com Pendentes na cor LARANJA #f59e0b)
     function renderizarGraficos() {
       const dddsAtivos = obterDDDsAtivos();
       const stats = {};
@@ -705,7 +705,7 @@
       });
     }
 
-    // 2. TABELA DE PROJEÇÃO POR DDD - CALIBRADA E COERENTE COM OS 88,6% REAIS
+    // 2. TABELA DE PROJEÇÃO POR DDD (COLORAÇÃO CONDICIONAL POR METAS MÍNIMAS)
     function renderizarTabelaProjecao() {
       const tbody = document.getElementById('tabelaProjecaoCorpo');
       tbody.innerHTML = '';
@@ -733,28 +733,30 @@
         
         const pctReal = tot > 0 ? (exe / tot) * 100 : 0;
         
-        // CÁLCULO REALISTA DA PROJEÇÃO:
-        // O teto máximo não é 100% se houver ordens recusadas (perda definitiva).
-        // Das pendentes válidas, aplica-se a taxa histórica esperada de conversão (90% do volume restante recuperável).
+        // Cálculo calibrado da Projeção Real
         let pctProj = 0;
         if (tot > 0) {
           const tetoMaximo = ((tot - rec) / tot) * 100;
-          const potencialRecuperacao = (pend / tot) * 100 * 0.88; // 88% de taxa média de resolução das pendências
+          const potencialRecuperacao = (pend / tot) * 100 * 0.88;
           pctProj = Math.min(tetoMaximo, pctReal + potencialRecuperacao);
-
-          // Se a execução já estiver muito alta (ex: > 99%), preserva o valor real
           if (pctReal > pctProj) pctProj = pctReal;
         }
 
         const realFormatado = pctReal.toFixed(2).replace('.', ',') + '%';
         const projFormatado = pctProj.toFixed(2).replace('.', ',') + '%';
 
-        let corClasse = 'bg-real-verde';
-        if (pctReal < 70) {
-          corClasse = 'bg-real-vermelho';
-        } else if (pctReal < 80) {
-          corClasse = 'bg-real-roxo';
-        }
+        // Coloração do Realizado
+        let corClasseReal = 'bg-real-verde';
+        if (pctReal < 70) corClasseReal = 'bg-real-vermelho';
+        else if (pctReal < 80) corClasseReal = 'bg-real-roxo';
+
+        // Coloração condicional da Projeção por metas mínimas:
+        // >= 95% -> Verde (Dentro da meta esperada)
+        // 85% a 94.99% -> Roxo (Risco moderado / Atenção)
+        // < 85% -> Vermelho (Abaixo do mínimo tolerável)
+        let corClasseProj = 'bg-real-verde';
+        if (pctProj < 85) corClasseProj = 'bg-real-vermelho';
+        else if (pctProj < 95) corClasseProj = 'bg-real-roxo';
 
         const tr = document.createElement('tr');
         if (index === 2) {
@@ -763,77 +765,61 @@
 
         tr.innerHTML = `
           <td>${ddd}</td>
-          <td class="${corClasse}">${realFormatado}</td>
-          <td class="bg-proj-padrao">${projFormatado}</td>
+          <td class="${corClasseReal}">${realFormatado}</td>
+          <td class="${corClasseProj}">${projFormatado}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // 3. BARRAS EMPILHADAS NA HORIZONTAL DE REGIONAIS (SEM SUBTÍTULO)
-    function renderizarGraficoRegionaisHorizontal() {
-      const regionaisStats = {};
+    // 3. GRÁFICO SOB DEMANDA (4 TIPOS: K1, K2, L1, L2) COM PENDENTE LARANJA
+    function renderizarGraficoSobDemanda() {
+      const tipos = ['Tipo 8 K1', 'Tipo 8 K2', 'Tipo 8 L1', 'Tipo 8 L2'];
+      const contagemExec = [0, 0, 0, 0];
+      const contagemPend = [0, 0, 0, 0];
 
       dadosFiltrados.forEach(r => {
-        const reg = r.regional || 'OUTROS';
-        if (!regionaisStats[reg]) {
-          regionaisStats[reg] = { total: 0, exec: 0 };
+        if (r.isSobDemanda && r.subtipoDemanda) {
+          const idx = tipos.indexOf(r.subtipoDemanda);
+          if (idx !== -1) {
+            if (r.isExec) contagemExec[idx]++;
+            else contagemPend[idx]++;
+          }
         }
-        regionaisStats[reg].total++;
-        if (r.isExec) regionaisStats[reg].exec++;
       });
 
-      const listaOrdenada = Object.keys(regionaisStats).map(reg => {
-        const tot = regionaisStats[reg].total;
-        const exe = regionaisStats[reg].exec;
-        const pctExec = tot > 0 ? (exe / tot) * 100 : 0;
-        const pctPend = 100 - pctExec;
-        return {
-          regional: reg,
-          pctExec: Number(pctExec.toFixed(1)),
-          pctPend: Number(pctPend.toFixed(1)),
-          total: tot,
-          executadas: exe
-        };
-      }).sort((a, b) => b.pctExec - a.pctExec);
-
-      const labels = listaOrdenada.map(d => d.regional);
-      const dataExec = listaOrdenada.map(d => d.pctExec);
-      const dataPend = listaOrdenada.map(d => d.pctPend);
-
-      if (chartRegionais) chartRegionais.destroy();
-      const ctx = document.getElementById('chartRegionaisHorizontal').getContext('2d');
-      chartRegionais = new Chart(ctx, {
+      if (chartSobDemanda) chartSobDemanda.destroy();
+      const ctx = document.getElementById('chartSobDemandaTipos').getContext('2d');
+      chartSobDemanda = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: labels,
+          labels: ['K1', 'K2', 'L1', 'L2'],
           datasets: [
             {
-              label: 'Executadas (%)',
-              data: dataExec,
-              backgroundColor: '#10b981',
+              label: 'Executadas',
+              data: contagemExec,
+              backgroundColor: '#8b5cf6',
               borderRadius: 4
             },
             {
-              label: 'Pendentes (%)',
-              data: dataPend,
-              backgroundColor: '#f59e0b',
+              label: 'Pendentes (TEL)',
+              data: contagemPend,
+              backgroundColor: '#f59e0b', // Pendente em Laranja
               borderRadius: 4
             }
           ]
         },
         options: {
-          indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            x: { stacked: true, max: 100, ticks: { callback: v => v + '%' } },
-            y: { stacked: true, grid: { display: false } }
+            x: { grid: { display: false } },
+            y: { beginAtZero: true }
           },
           plugins: {
             tooltip: {
               callbacks: {
-                label: ctx => `${ctx.dataset.label}: ${ctx.raw}%`
+                title: (items) => tipos[items[0].dataIndex]
               }
             }
           }
