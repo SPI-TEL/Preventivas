@@ -55,20 +55,22 @@
       background-color: #d1d5db;
       color: #111827;
       font-weight: 800;
-      font-size: 11px;
-      padding: 6px 12px;
+      font-size: 10.5px;
+      padding: 6px 6px;
       text-align: right;
+      white-space: nowrap;
     }
     .tabela-projecao thead th:first-child {
       text-align: center;
-      width: 35%;
+      width: 25%;
     }
     .tabela-projecao tbody td {
-      padding: 5px 12px;
-      font-size: 12px;
+      padding: 5px 6px;
+      font-size: 11px;
       font-family: monospace;
       font-weight: 700;
       text-align: right;
+      white-space: nowrap;
     }
     .tabela-projecao tbody td:first-child {
       font-family: 'Inter', sans-serif;
@@ -82,11 +84,12 @@
       border-top: 1.5px dotted #64748b;
     }
 
-    /* Classes de cores do Realizado e Projeção */
-    .bg-real-verde    { background-color: #86efac; color: #064e3b; } /* >= 80% */
-    .bg-real-amarelo  { background-color: #fde047; color: #713f12; } /* 60% a 79.99% */
-    .bg-real-roxo     { background-color: #d8b4fe; color: #3b0764; } /* Risco moderado Projeção */
-    .bg-real-vermelho { background-color: #fca5a5; color: #7f1d1d; } /* < 60% */
+    /* Classes de cores do Realizado, Meta e Projeção */
+    .bg-real-verde      { background-color: #86efac; color: #064e3b; } /* >= 80% */
+    .bg-real-amarelo    { background-color: #fde047; color: #713f12; } /* 60% a 79.99% */
+    .bg-real-roxo       { background-color: #d8b4fe; color: #3b0764; } /* Risco moderado Projeção */
+    .bg-real-vermelho   { background-color: #fca5a5; color: #7f1d1d; } /* < 60% */
+    .bg-meta-amarelo-claro { background-color: #fef9c3; color: #854d0e; } /* Amarelo bem clarinho para meta */
 
     .table-container {
       max-height: 540px;
@@ -155,7 +158,7 @@
       </div>
       <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200 font-semibold">
         <i class="fa-solid fa-chart-pie text-amber-500"></i>
-        <span>Realizado Avaliado Frente à Meta Acumulada Proporcional do Dia</span>
+        <span>Meta Acumulada Proporcional do Mês e Projeção Calibrada por DDD</span>
       </div>
     </div>
 
@@ -277,7 +280,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO PRINCIPAL DE GRÁFICOS: DDD, PROJEÇÃO E SOB DEMANDA (4 TIPOS) -->
+    <!-- SEÇÃO PRINCIPAL DE GRÁFICOS: DDD (5), PROJEÇÃO ESTICADA (4) E SOB DEMANDA REDUZIDO (3) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       
       <!-- Gráfico 1: Barras Empilhadas 100% por DDD (5 colunas) -->
@@ -294,8 +297,8 @@
         </div>
       </div>
 
-      <!-- Tabela Projeção por DDD (3 colunas) -->
-      <div class="lg:col-span-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+      <!-- Tabela Projeção por DDD (ESTICADA PARA 4 COLUNAS COM META ACUMULADA) -->
+      <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-2">
           <div class="flex items-center space-x-2">
             <i class="fa-solid fa-table text-slate-700"></i>
@@ -310,6 +313,7 @@
               <tr>
                 <th>DDD</th>
                 <th>Realizado</th>
+                <th>Meta Acum.</th>
                 <th>Projeção</th>
               </tr>
             </thead>
@@ -318,8 +322,8 @@
         </div>
       </div>
 
-      <!-- Gráfico 3: Detalhamento Sob Demanda (4 Tipos) (4 colunas) -->
-      <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+      <!-- Gráfico 3: Detalhamento Sob Demanda (4 Tipos) (REDUZIDO PARA 3 COLUNAS) -->
+      <div class="lg:col-span-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center space-x-2">
             <i class="fa-solid fa-microchip text-purple-600"></i>
@@ -707,7 +711,7 @@
       });
     }
 
-    // 2. TABELA DE PROJEÇÃO POR DDD (COLORAÇÃO CONDICIONAL POR METAS MÍNIMAS)
+    // 2. TABELA DE PROJEÇÃO POR DDD (COM A COLUNA META ACUMULADA EM AMARELO BEM CLARINHO)
     function renderizarTabelaProjecao() {
       const tbody = document.getElementById('tabelaProjecaoCorpo');
       tbody.innerHTML = '';
@@ -727,10 +731,12 @@
         }
       });
 
-      // Cálculo da meta proporcional acumulada do dia
+      // Cálculo da meta proporcional acumulada com base no dia do mês
       const hoje = new Date();
       const diaAtual = Math.min(Math.max(hoje.getDate(), 1), 30);
       const proporcaoMesDecorrido = diaAtual / 30;
+      const metaAcumuladaDia = 100 * proporcaoMesDecorrido; 
+      const metaAcumuladaFormatada = metaAcumuladaDia.toFixed(2).replace('.', ',') + '%';
 
       dddsAtivos.forEach((ddd, index) => {
         const tot = stats[ddd].total;
@@ -740,14 +746,11 @@
         
         const pctReal = tot > 0 ? (exe / tot) * 100 : 0;
         
-        // Meta acumulada esperada até o dia de hoje para o DDD
-        const metaAcumuladaDia = 100 * proporcaoMesDecorrido; 
-
         // Percentual de atingimento relativo à meta acumulada do dia
         const atingimentoFrenteMetaDia = metaAcumuladaDia > 0 ? (pctReal / metaAcumuladaDia) * 100 : pctReal;
 
-        // Regra de cores para o Realizado frente à meta acumulada:
-        // >= 80% -> Verde
+        // Regra de cores para o Realizado:
+        // >= 80% da meta acumulada -> Verde
         // 60% a 79.99% -> Amarelo
         // < 60% -> Vermelho
         let corClasseReal = 'bg-real-verde';
@@ -782,6 +785,7 @@
         tr.innerHTML = `
           <td>${ddd}</td>
           <td class="${corClasseReal}" title="Atingimento da meta diária: ${atingimentoFrenteMetaDia.toFixed(1)}%">${realFormatado}</td>
+          <td class="bg-meta-amarelo-claro">${metaAcumuladaFormatada}</td>
           <td class="${corClasseProj}">${projFormatado}</td>
         `;
         tbody.appendChild(tr);
@@ -820,7 +824,7 @@
             {
               label: 'Pendentes (TEL)',
               data: contagemPend,
-              backgroundColor: '#f59e0b', // Pendente em Laranja
+              backgroundColor: '#f59e0b',
               borderRadius: 4
             }
           ]
