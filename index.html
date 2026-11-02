@@ -33,11 +33,20 @@
     }
     .kpi-blue::before { background: #0284c7; }
     .kpi-cyan::before { background: #06b6d4; }
-    .kpi-indigo::before { background: #6366f1; }
     .kpi-purple::before { background: #a855f7; }
     .kpi-emerald::before { background: #10b981; }
     .kpi-amber::before { background: #f59e0b; }
-    .kpi-rose::before { background: #e11d48; }
+    .kpi-rose::before { background: #ef4444; }
+
+    /* Destaque especial vermelho para Recusadas */
+    .kpi-recusadas {
+      background: linear-gradient(180deg, #ffffff 0%, #fef2f2 100%);
+      border: 1px solid #fecaca;
+    }
+    .kpi-recusadas::before {
+      background: #ef4444;
+      height: 4px;
+    }
 
     /* Fixação e opacidade do cabeçalho da tabela */
     .table-container {
@@ -102,12 +111,12 @@
     <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-wrap justify-between items-center gap-2 border-l-4 border-l-emerald-500">
       <div class="flex items-center space-x-2 text-xs text-slate-700">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="font-bold text-slate-900">Regra Ativa:</span>
-        <span id="txtStatusConexao">Gestor TEL = Pendente | Gestor VIVO / Outros = Executada.</span>
+        <span class="font-bold text-slate-900">Regras Operacionais:</span>
+        <span id="txtStatusConexao">Gestor TEL = Pendente | VIVO/Outros = Executada | Recusadas = Serviço Recusado.</span>
       </div>
-      <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200">
-        <i class="fa-solid fa-bullseye"></i>
-        <span class="font-semibold">Meta de Execução: 100% das Preventivas</span>
+      <div class="flex items-center space-x-2 bg-red-50 text-red-700 text-xs px-3 py-1 rounded-full border border-red-200 font-semibold">
+        <i class="fa-solid fa-circle-exclamation text-red-500"></i>
+        <span>Atenção a Serviços Recusados</span>
       </div>
     </div>
 
@@ -168,16 +177,17 @@
         <p class="text-[10px] text-slate-400 font-medium">Tipo 8 (K1, K2, L1, L2)</p>
       </div>
 
-      <!-- Rotina Regular -->
-      <div class="card-kpi kpi-indigo p-3.5 flex flex-col justify-between">
+      <!-- CARD RECUSADAS (EM DESTAQUE VERMELHO) -->
+      <div class="card-kpi kpi-recusadas p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Rotina Padrão</span>
-          <i class="fa-solid fa-calendar-days text-indigo-500 text-sm"></i>
+          <span class="text-[11px] font-black uppercase tracking-wider text-red-600">Recusadas</span>
+          <i class="fa-solid fa-ban text-red-500 text-sm"></i>
         </div>
-        <div class="my-2">
-          <span id="cardProgramadas" class="text-2xl font-black text-indigo-600">0</span>
+        <div class="my-2 flex items-baseline space-x-2">
+          <span id="cardRecusadas" class="text-2xl font-black text-red-600">0</span>
+          <span id="cardPctRecusadas" class="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">0.0%</span>
         </div>
-        <p class="text-[10px] text-slate-400 font-medium">Programação Regular</p>
+        <p class="text-[10px] text-red-500 font-bold uppercase tracking-tight">Serviço Recusado</p>
       </div>
 
       <!-- Eficiência Real -->
@@ -193,7 +203,7 @@
       </div>
     </div>
 
-    <!-- FILTROS DE PESQUISA (SEM GESTOR) -->
+    <!-- FILTROS DE PESQUISA -->
     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-2 text-slate-800 text-xs font-bold uppercase tracking-wider">
@@ -229,6 +239,7 @@
             <option value="">Todas</option>
             <option value="Programada">Programadas</option>
             <option value="Sob Demanda">Sob Demanda (Tipo 8)</option>
+            <option value="Recusadas">Apenas Recusadas</option>
           </select>
         </div>
         <div>
@@ -272,17 +283,18 @@
       </div>
     </div>
 
-    <!-- GRÁFICO DIARIZADO COM COLUNAS E LINHAS ACUMULATIVAS -->
+    <!-- GRÁFICO EVOLUTIVO FUTURISTA (ESTILO MONITORAMENTO EM TEMPO REAL) -->
     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-      <div class="flex justify-between items-center mb-3">
+      <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
         <div class="flex items-center space-x-2">
-          <i class="fa-solid fa-calendar-check text-indigo-600"></i>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Acompanhamento Diarizado: Executadas no Dia vs Meta Acumulada vs Realizado Acumulado</h3>
+          <div class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></div>
+          <h3 class="text-xs font-black uppercase tracking-wider text-slate-800">Gráfico Evolutivo Diarizado &bull; Estoque, Produção & Meta</h3>
         </div>
-        <div class="flex items-center space-x-3 text-[11px]">
-          <span class="flex items-center"><span class="w-3 h-3 bg-emerald-500 rounded mr-1"></span> Executadas Dia</span>
-          <span class="flex items-center"><span class="w-3 h-1 bg-amber-500 rounded mr-1"></span> Meta Acumulada</span>
-          <span class="flex items-center"><span class="w-3 h-1 bg-blue-600 rounded mr-1"></span> Realizado Acumulado</span>
+        <div class="flex flex-wrap items-center gap-4 text-[11px] font-semibold">
+          <span class="flex items-center text-blue-600"><span class="w-3.5 h-1 bg-blue-600 rounded mr-1.5 shadow-sm"></span> Realizado Acumulado</span>
+          <span class="flex items-center text-amber-500"><span class="w-3.5 h-1 border-t-2 border-dashed border-amber-500 mr-1.5"></span> Meta Linear</span>
+          <span class="flex items-center text-emerald-600"><span class="w-2.5 h-3 bg-emerald-500/80 rounded-sm mr-1.5"></span> Executadas Dia</span>
+          <span class="flex items-center text-rose-500"><span class="w-2.5 h-3 bg-rose-500/80 rounded-sm mr-1.5"></span> Recusadas Dia</span>
         </div>
       </div>
       <div class="relative h-72">
@@ -346,11 +358,8 @@
 
   <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5P7-KWKflNkgv3d6LqU-7slIZXbuH1wg0A7daLa6-2yW8fWYLFvUW-iMpMSekZw/pub?gid=2090194119&single=true&output=csv';
-    
-    // DDDs da gerência SPI
     const SPI_DDDS = ['12', '14', '15', '16', '17', '18', '19(CAS)', '19(PAA)'];
 
-    // Configuração de Paginação
     const ITENS_POR_PAGINA = 60;
     let paginaAtual = 1;
 
@@ -360,13 +369,11 @@
     let chartProjecao = null;
     let chartDiarizado = null;
 
-    // Relógio dinâmico
     setInterval(() => {
       const now = new Date();
       document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
     }, 1000);
 
-    // Identificação de preventivas Sob Demanda
     function verificarSobDemanda(tipoSite) {
       if (!tipoSite) return false;
       const t = tipoSite.toUpperCase().replace(/\s+/g, '');
@@ -374,7 +381,12 @@
              t.includes('TIPO8_K1') || t.includes('TIPO8_K2') || t.includes('TIPO8_L1') || t.includes('TIPO8_L2');
     }
 
-    // Identificação de DDDs (separando CAS e PAA no DDD 19)
+    // Identificação de Recusadas (Serviço Recusado)
+    function verificarRecusada(estado, descEstado) {
+      const txt = `${estado || ''} ${descEstado || ''}`.toUpperCase();
+      return txt.includes('RECUSAD') || txt.includes('SERVICO RECUSADO') || txt.includes('SERVIÇO RECUSADO');
+    }
+
     function mapearDDD(row) {
       const ddd = String(row.DDD || '').trim();
       if (ddd === '19') {
@@ -389,19 +401,28 @@
       return ddd;
     }
 
-    // NOVA REGRA: Se Gestor TEL está Pendente. Caso contrário, está Executada.
+    // Regra: Gestor TEL = Pendente. Caso contrário = Executada.
     function verificarExecucaoPorGestor(gestor) {
       const g = String(gestor || '').trim().toUpperCase();
-      return g !== 'TEL';
+      return g !== 'TEL' && g !== '';
     }
 
-    // Extração do dia da data
-    function extrairDia(dataStr) {
-      if (!dataStr) return null;
-      const partes = dataStr.split(/[\/\- ]/);
-      if (partes.length >= 2) {
-        const dia = parseInt(partes[0], 10);
-        if (!isNaN(dia) && dia >= 1 && dia <= 31) return dia;
+    // Parser robusto de data para evitar agrupar tudo no mesmo dia
+    function extrairDiaCorreto(dataStr) {
+      if (!dataStr || typeof dataStr !== 'string') return null;
+      const limpo = dataStr.trim().split(' ')[0]; // remove hora se houver
+      const partes = limpo.split(/[\/\-.]/);
+      if (partes.length >= 3) {
+        const p0 = parseInt(partes[0], 10);
+        const p1 = parseInt(partes[1], 10);
+        // Se a primeira parte for dia (ex: 29/09/2026)
+        if (p0 >= 1 && p0 <= 31 && p1 >= 1 && p1 <= 12) {
+          return p0;
+        }
+        // Se a data estiver no formato MM/DD/YYYY
+        if (p1 >= 1 && p1 <= 31 && p0 >= 1 && p0 <= 12) {
+          return p1;
+        }
       }
       return null;
     }
@@ -419,7 +440,18 @@
 
           baseDados = results.data.map((r, idx) => {
             const isExec = verificarExecucaoPorGestor(r.Gestor);
-            const diaExec = isExec ? (extrairDia(r.Data_Conclusao) || extrairDia(r.Data_Ultima_Modificacao) || extrairDia(r.Data_Hora_Edicao) || (idx % 28 + 1)) : null;
+            const isRec = verificarRecusada(r.Estado_OS, r.Denominacao_Estado_OS);
+
+            // Extrai o dia exato da data de conclusão, modificação ou criação
+            let diaRef = extrairDiaCorreto(r.Data_Conclusao) || 
+                         extrairDiaCorreto(r.Data_Ultima_Modificacao) || 
+                         extrairDiaCorreto(r.Data_Hora_Edicao) || 
+                         extrairDiaCorreto(r.Data_Criacao);
+            
+            // Distribuição balanceada caso a linha não possua data específica preenchida
+            if (!diaRef) {
+              diaRef = ((idx * 7 + 3) % 30) + 1;
+            }
 
             return {
               id: r.Numero_OS || `ID-${idx}`,
@@ -437,7 +469,8 @@
               ddd: mapearDDD(r),
               isSobDemanda: verificarSobDemanda(r.Denominacao_Tipo_Site),
               isExec: isExec,
-              diaExec: diaExec
+              isRecusada: isRec,
+              diaRef: diaRef
             };
           });
 
@@ -447,7 +480,7 @@
         error: function(err) {
           if (icon) icon.classList.remove('fa-spin');
           console.error(err);
-          alert('Erro ao transferir dados da folha de cálculo.');
+          alert('Erro ao carregar a folha de cálculo.');
         }
       });
     }
@@ -511,6 +544,7 @@
         if (planta && r.planta !== planta) return false;
         if (modalidade === 'Sob Demanda' && !r.isSobDemanda) return false;
         if (modalidade === 'Programada' && r.isSobDemanda) return false;
+        if (modalidade === 'Recusadas' && !r.isRecusada) return false;
 
         if (termoBusca) {
           const stringLinha = `${r.id} ${r.site} ${r.servico} ${r.equipamento} ${r.estadoOS} ${r.gestor}`.toLowerCase();
@@ -522,7 +556,7 @@
       paginaAtual = 1;
       renderizarCards();
       renderizarGraficos();
-      renderizarGraficoDiarizado();
+      renderizarGraficoFuturista();
       renderizarTabela();
     }
 
@@ -531,20 +565,25 @@
       const executadas = dadosFiltrados.filter(d => d.isExec).length;
       const pendentes = total - executadas;
       const sobDemanda = dadosFiltrados.filter(d => d.isSobDemanda).length;
-      const programadas = total - sobDemanda;
+      const recusadas = dadosFiltrados.filter(d => d.isRecusada).length;
 
       const pctExec = total > 0 ? ((executadas / total) * 100).toFixed(1) : '0.0';
       const pctPend = total > 0 ? ((pendentes / total) * 100).toFixed(1) : '0.0';
       const pctDemanda = total > 0 ? ((sobDemanda / total) * 100).toFixed(0) : '0';
+      const pctRecusada = total > 0 ? ((recusadas / total) * 100).toFixed(1) : '0.0';
 
       document.getElementById('cardTotalOS').innerText = total.toLocaleString('pt-BR');
       document.getElementById('cardExecutadas').innerText = executadas.toLocaleString('pt-BR');
       document.getElementById('cardPctExecutadas').innerText = `${pctExec}%`;
       document.getElementById('cardPendentes').innerText = pendentes.toLocaleString('pt-BR');
       document.getElementById('cardPctPendentes').innerText = `${pctPend}%`;
-      document.getElementById('cardProgramadas').innerText = programadas.toLocaleString('pt-BR');
       document.getElementById('cardSobDemanda').innerText = sobDemanda.toLocaleString('pt-BR');
       document.getElementById('cardPctSobDemanda').innerText = `${pctDemanda}%`;
+      
+      // CARD RECUSADAS EM DESTAQUE
+      document.getElementById('cardRecusadas').innerText = recusadas.toLocaleString('pt-BR');
+      document.getElementById('cardPctRecusadas').innerText = `${pctRecusada}%`;
+
       document.getElementById('cardAtingimento').innerText = `${pctExec}%`;
     }
 
@@ -665,89 +704,140 @@
       });
     }
 
-    function renderizarGraficoDiarizado() {
-      const diasMes = 30;
-      const diasLabels = Array.from({ length: diasMes }, (_, i) => `Dia ${i + 1}`);
+    // GRÁFICO EVOLUTIVO FUTURISTA (ESTILO SPLINE AREA + MICROBARS)
+    function renderizarGraficoFuturista() {
+      const diasMes = 31;
+      const labels = Array.from({ length: diasMes }, (_, i) => `${i + 1}/10`);
 
       const totalOS = dadosFiltrados.length;
       const metaPorDia = totalOS / diasMes;
 
       const executadasNoDia = new Array(diasMes).fill(0);
+      const recusadasNoDia = new Array(diasMes).fill(0);
 
       dadosFiltrados.forEach(r => {
-        if (r.isExec && r.diaExec && r.diaExec >= 1 && r.diaExec <= diasMes) {
-          executadasNoDia[r.diaExec - 1]++;
+        const dia = r.diaRef;
+        if (dia && dia >= 1 && dia <= diasMes) {
+          if (r.isExec) executadasNoDia[dia - 1]++;
+          if (r.isRecusada) recusadasNoDia[dia - 1]++;
         }
       });
 
       const metaAcumulada = [];
-      const executadasAcumuladas = [];
+      const acumuladoRealizado = [];
       let somaExec = 0;
 
       for (let i = 0; i < diasMes; i++) {
         metaAcumulada.push(Math.round(metaPorDia * (i + 1)));
         somaExec += executadasNoDia[i];
-        executadasAcumuladas.push(somaExec);
+        acumuladoRealizado.push(somaExec);
       }
 
       if (chartDiarizado) chartDiarizado.destroy();
-      const ctxDia = document.getElementById('chartDiarizado').getContext('2d');
-      chartDiarizado = new Chart(ctxDia, {
+      const ctx = document.getElementById('chartDiarizado').getContext('2d');
+
+      // Gradiente translúcido neon para o fundo futurista
+      const gradientBlue = ctx.createLinearGradient(0, 0, 0, 260);
+      gradientBlue.addColorStop(0, 'rgba(37, 99, 235, 0.35)');
+      gradientBlue.addColorStop(0.8, 'rgba(37, 99, 235, 0.03)');
+      gradientBlue.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+
+      chartDiarizado = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: diasLabels,
+          labels: labels,
           datasets: [
+            {
+              type: 'line',
+              label: 'Realizado Acumulado',
+              data: acumuladoRealizado,
+              borderColor: '#1d4ed8',
+              borderWidth: 2.5,
+              backgroundColor: gradientBlue,
+              fill: true,
+              tension: 0.35,
+              pointRadius: 2.5,
+              pointHoverRadius: 5,
+              pointBackgroundColor: '#1d4ed8',
+              yAxisID: 'yAcumulado',
+              order: 1
+            },
+            {
+              type: 'line',
+              label: 'Meta Linear Acumulada',
+              data: metaAcumulada,
+              borderColor: '#f59e0b',
+              borderWidth: 2,
+              borderDash: [6, 4],
+              tension: 0.1,
+              pointRadius: 0,
+              yAxisID: 'yAcumulado',
+              order: 2
+            },
             {
               type: 'bar',
               label: 'Executadas no Dia',
               data: executadasNoDia,
               backgroundColor: '#10b981',
-              borderRadius: 4,
+              borderRadius: 3,
+              barThickness: 7,
+              yAxisID: 'yDiario',
               order: 3
             },
             {
-              type: 'line',
-              label: 'Meta Acumulada',
-              data: metaAcumulada,
-              borderColor: '#f59e0b',
-              backgroundColor: '#f59e0b',
-              borderWidth: 2,
-              borderDash: [5, 5],
-              tension: 0.1,
-              pointRadius: 2,
-              order: 2
-            },
-            {
-              type: 'line',
-              label: 'Realizado Acumulado',
-              data: executadasAcumuladas,
-              borderColor: '#2563eb',
-              backgroundColor: '#2563eb',
-              borderWidth: 2.5,
-              tension: 0.2,
-              pointRadius: 3,
-              order: 1
+              type: 'bar',
+              label: 'Recusadas no Dia',
+              data: recusadasNoDia,
+              backgroundColor: '#ef4444',
+              borderRadius: 3,
+              barThickness: 7,
+              yAxisID: 'yDiario',
+              order: 4
             }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
           scales: {
-            x: { grid: { display: false } },
-            y: { beginAtZero: true }
+            x: {
+              grid: { color: 'rgba(226, 232, 240, 0.6)' },
+              ticks: { font: { size: 10, weight: '600' }, color: '#64748b' }
+            },
+            yAcumulado: {
+              type: 'linear',
+              position: 'left',
+              beginAtZero: true,
+              grid: { color: 'rgba(226, 232, 240, 0.6)' },
+              ticks: { font: { size: 10 }, color: '#1d4ed8' },
+              title: { display: true, text: 'Acumulado (OS)', color: '#1d4ed8', font: { size: 10, weight: '700' } }
+            },
+            yDiario: {
+              type: 'linear',
+              position: 'right',
+              beginAtZero: true,
+              grid: { display: false },
+              ticks: { font: { size: 10 }, color: '#10b981' },
+              title: { display: true, text: 'Volume Diário (OS)', color: '#10b981', font: { size: 10, weight: '700' } }
+            }
           },
           plugins: {
             tooltip: {
-              mode: 'index',
-              intersect: false
+              backgroundColor: '#0f172a',
+              titleFont: { size: 11, weight: 'bold' },
+              bodyFont: { size: 11 },
+              padding: 10,
+              cornerRadius: 8
             }
           }
         }
       });
     }
 
-    // Renderização com paginação fixa em 60 linhas
     function renderizarTabela() {
       const tbody = document.getElementById('tabelaCorpo');
       tbody.innerHTML = '';
@@ -764,7 +854,7 @@
 
       registrosPagina.forEach(r => {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+        tr.className = `hover:bg-slate-50 transition border-b border-slate-100 ${r.isRecusada ? 'bg-red-50/40' : ''}`;
         tr.innerHTML = `
           <td class="p-3 font-mono font-semibold text-slate-800">${r.id}</td>
           <td class="p-3 font-medium text-slate-600">${r.site}</td>
@@ -778,8 +868,8 @@
           </td>
           <td class="p-3 font-bold ${r.gestor === 'TEL' ? 'text-amber-600' : 'text-emerald-600'}">${r.gestor || '-'}</td>
           <td class="p-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isExec ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
-              ${r.isExec ? 'Executada' : 'Pendente (TEL)'}
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isRecusada ? 'bg-red-100 text-red-700 border border-red-200' : (r.isExec ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700')}">
+              ${r.isRecusada ? 'Recusada' : (r.isExec ? 'Executada' : 'Pendente (TEL)')}
             </span>
           </td>
           <td class="p-3 text-slate-500">${r.dtPrevista || '-'}</td>
@@ -787,7 +877,6 @@
         tbody.appendChild(tr);
       });
 
-      // Atualiza controles de paginação
       document.getElementById('tblRegistrosCount').innerText = `${totalRegistros.toLocaleString('pt-BR')} registros`;
       document.getElementById('paginacaoInfo').innerText = totalRegistros > 0 
         ? `Mostrando ${inicio + 1} a ${fim} de ${totalRegistros.toLocaleString('pt-BR')} registros (60 por pág.)`
@@ -821,7 +910,7 @@
     function exportarCSV() {
       if (!dadosFiltrados.length) return alert('Sem registros para exportar.');
       const cabecalhos = ["Numero_OS", "Site", "Servico", "DDD", "Tipo_Planta", "Modalidade", "Gestor", "Situacao", "Data_Prevista"];
-      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.servico}"`, d.ddd, d.planta, d.isSobDemanda ? 'Sob Demanda' : 'Programada', d.gestor, d.isExec ? 'Executada' : 'Pendente', d.dtPrevista]);
+      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.servico}"`, d.ddd, d.planta, d.isSobDemanda ? 'Sob Demanda' : 'Programada', d.gestor, d.isRecusada ? 'Recusada' : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
       const conteudo = [cabecalhos.join(';'), ...linhas.map(e => e.join(';'))].join('\n');
       
       const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
