@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal de Acompanhamento de Preventivas - SPI</title>
+  
+  <!-- Tailwind CSS, Chart.js, PapaParse & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+    .card-kpi {
+      background: #ffffff;
+      border-radius: 0.75rem;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    .card-kpi::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+    }
+    .kpi-blue::before { background: #0284c7; }
+    .kpi-cyan::before { background: #06b6d4; }
+    .kpi-indigo::before { background: #6366f1; }
+    .kpi-purple::before { background: #a855f7; }
+    .kpi-emerald::before { background: #10b981; }
+    .kpi-amber::before { background: #f59e0b; }
+    .kpi-rose::before { background: #e11d48; }
+  </style>
+</head>
+<body class="min-h-screen pb-12">
+
+  <!-- CABEÇALHO PADRÃO NC/COR -->
+  <header class="bg-[#0f172a] text-white shadow-lg border-b border-slate-800">
+    <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-teal-400 border border-slate-700 shadow-inner">
+          <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-lg font-black tracking-wider uppercase">Controle de Preventivas</h1>
+            <span class="bg-teal-900/80 text-teal-300 text-[11px] font-semibold px-2 py-0.5 rounded-full border border-teal-500/30">Google Sheets Live &bull; SPI</span>
+          </div>
+          <p class="text-xs text-slate-400">Contrato Vivo / TEL &bull; Acompanhamento Operacional, Projeções e Eficiência</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <div class="text-right hidden sm:block">
+          <p class="text-[10px] uppercase font-semibold text-slate-400">Última Sincronização</p>
+          <p id="clock" class="text-sm font-black font-mono text-white tracking-widest">--:--:--</p>
+        </div>
+
+        <button onclick="carregarDados()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 transition shadow">
+          <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i>
+          <span>Sincronizar</span>
+        </button>
+
+        <button onclick="window.print()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition border border-slate-700">
+          <i class="fa-solid fa-file-pdf"></i>
+          <span>Relatório / PDF</span>
+        </button>
+
+        <button onclick="exportarCSV()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 transition shadow">
+          <i class="fa-solid fa-file-excel"></i>
+          <span>Exportar Base (.xlsx)</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-[1600px] mx-auto px-4 mt-4 space-y-4">
+
+    <!-- BARRA DE STATUS / NOTIFICAÇÃO -->
+    <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-wrap justify-between items-center gap-2 border-l-4 border-l-emerald-500">
+      <div class="flex items-center space-x-2 text-xs text-slate-700">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="font-bold text-slate-900">Sucesso:</span>
+        <span id="txtStatusConexao">Base de dados conectada e sincronizada com a folha de cálculo online.</span>
+      </div>
+      <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200">
+        <i class="fa-solid fa-bullseye"></i>
+        <span class="font-semibold">Meta de Execução: 100% das Preventivas no Prazo</span>
+      </div>
+    </div>
+
+    <!-- CARDS TOTALIZADORES -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+      <!-- Total OS -->
+      <div class="card-kpi kpi-blue p-3.5 flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total OS</span>
+          <i class="fa-solid fa-list-check text-sky-500 text-sm"></i>
+        </div>
+        <div class="my-2">
+          <span id="cardTotalOS" class="text-2xl font-black text-slate-800">0</span>
+        </div>
+        <p class="text-[10px] text-slate-400 font-medium">Ordens apuradas</p>
+      </div>
+
+      <!-- Executadas -->
+      <div class="card-kpi kpi-emerald p-3.5 flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Executadas</span>
+          <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+        </div>
+        <div class="my-2">
+          <span id="cardExecutadas" class="text-2xl font-black text-emerald-600">0</span>
+        </div>
+        <div class="flex justify-between text-[10px]">
+          <span class="text-slate-400">Concluídas</span>
+          <span id="cardPctExecutadas" class="font-bold text-emerald-600">0.0%</span>
+        </div>
+      </div>
+
+      <!-- Pendentes / Em Campo -->
+      <div class="card-kpi kpi-amber p-3.5 flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Pendentes</span>
+          <i class="fa-solid fa-hourglass-half text-amber-500 text-sm"></i>
+        </div>
+        <div class="my-2">
+          <span id="cardPendentes" class="text-2xl font-black text-amber-500">0</span>
+        </div>
+        <div class="flex justify-between text-[10px]">
+          <span class="text-slate-400">Em aberto</span>
+          <span id="cardPctPendentes" class="font-bold text-amber-600">0.0%</span>
+        </div>
+      </div>
+
+      <!-- Programadas (Padrão) -->
+      <div class="card-kpi kpi-indigo p-3.5 flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Programadas</span>
+          <i class="fa-solid fa-calendar-days text-indigo-500 text-sm"></i>
+        </div>
+        <div class="my-2">
+          <span id="cardProgramadas" class="text-2xl font-black text-indigo-600">0</span>
+        </div>
+        <p class="text-[10px] text-slate-400 font-medium">Fluxo Mensal Fixo</p>
+      </div>
+
+      <!-- Sob Demanda (Tipo 8) -->
+      <div class="card-kpi kpi-purple p-3.5 flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Sob Demanda</span>
+          <i class="fa-solid fa-screwdriver-wrench text-purple-500 text-sm"></i>
+        </div>
+        <div class="my-2 flex items-baseline space-x-2">
+          <span id="cardSobDemanda" class="text-2xl font-black text-purple-600">0</span>
+          <span id="cardPctSobDemanda" class="text-[10px] font-bold text-purple-500 bg-purple-50 px-1 rounded">0%</span>
+        </div>
+        <p class="text-[10px] text-slate-400 font-medium">Tipo 8 (K1, K2, L1, L2)</p>
+      </div>
+
+      <!-- Execução Incompleta / Alerta -->
+      <div class="card-kpi kpi-rose p-3.5 flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Incompletas</span>
+          <i class="fa-solid fa-triangle-exclamation text-rose-500 text-sm"></i>
+        </div>
+        <div class="my-2">
+          <span id="cardIncompletas" class="text-2xl font-black text-rose-600">0</span>
+        </div>
+        <p class="text-[10px] text-rose-500 font-medium">Requerem Revisão</p>
+      </div>
+
+      <!-- Eficiência Global -->
+      <div class="card-kpi kpi-cyan p-3.5 flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Atingimento</span>
+          <i class="fa-solid fa-chart-line text-cyan-500 text-sm"></i>
+        </div>
+        <div class="my-2">
+          <span id="cardAtingimento" class="text-2xl font-black text-cyan-600">0%</span>
+        </div>
+        <p class="text-[10px] text-slate-400 font-medium">Meta Global: 100%</p>
+      </div>
+    </div>
+
+    <!-- FILTROS DE PESQUISA -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <div class="flex justify-between items-center mb-3">
+        <div class="flex items-center space-x-2 text-slate-800 text-xs font-bold uppercase tracking-wider">
+          <i class="fa-solid fa-filter text-blue-600"></i>
+          <span>Filtros de Pesquisa</span>
+        </div>
+        <button onclick="limparFiltros()" class="text-xs text-blue-600 hover:text-blue-800 flex items-center space-x-1 font-semibold">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>Limpar Filtros</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Gerência</label>
+          <select id="filtroGerencia" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Coordenação</label>
+          <select id="filtroCoordenacao" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Gestor</label>
+          <select id="filtroGestor" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Responsável</label>
+          <select id="filtroResponsavel" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Tipo de Rede</label>
+          <select id="filtroTipoPlanta" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Modalidade</label>
+          <select id="filtroModalidade" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="">Todas</option>
+            <option value="Programada">Programadas</option>
+            <option value="Sob Demanda">Sob Demanda (Tipo 8)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Busca Livre</label>
+          <div class="relative">
+            <input type="text" id="filtroBusca" oninput="aplicarFiltros()" placeholder="OS, Site, Ação..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 pl-7 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <!-- Gráfico 1: Barras Empilhadas 100% -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-3">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-chart-column text-teal-600"></i>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Preventivas por DDD (Empilhado 100%)</h3>
+          </div>
+          <span class="text-[10px] text-slate-400 uppercase font-semibold">Executadas vs Pendentes</span>
+        </div>
+        <div class="relative h-64">
+          <canvas id="chartStackedDDD"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico 2: Projeção por DDD -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-3">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-chart-line text-blue-600"></i>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Projeção de Cumprimento por DDD</h3>
+          </div>
+          <span class="text-[10px] text-slate-400 uppercase font-semibold">Programadas vs Estimativa Final</span>
+        </div>
+        <div class="relative h-64">
+          <canvas id="chartProjecaoDDD"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABELA ANALÍTICA -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <div class="flex items-center space-x-2 text-xs font-bold uppercase text-slate-700">
+          <i class="fa-solid fa-table-list text-slate-500"></i>
+          <span>Detalhamento Operacional de Preventivas</span>
+        </div>
+        <span id="tblRegistrosCount" class="text-[11px] text-slate-500 font-semibold">0 registos</span>
+      </div>
+      <div class="overflow-x-auto max-h-80">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead class="bg-slate-100/75 text-slate-600 uppercase text-[10px] font-bold sticky top-0 z-10 border-b">
+            <tr>
+              <th class="p-2.5">Nº OS</th>
+              <th class="p-2.5">Site</th>
+              <th class="p-2.5">Equipamento / Serviço</th>
+              <th class="p-2.5">DDD</th>
+              <th class="p-2.5">Tipo Planta</th>
+              <th class="p-2.5">Modalidade</th>
+              <th class="p-2.5">Estado / Situação</th>
+              <th class="p-2.5">Dt. Prevista</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaCorpo" class="divide-y divide-slate-100 text-slate-700"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5P7-KWKflNkgv3d6LqU-7slIZXbuH1wg0A7daLa6-2yW8fWYLFvUW-iMpMSekZw/pub?gid=2090194119&single=true&output=csv';
+    const DDDS_ORDENADOS = ['12', '14', '15', '16', '17', '18', '19(CAS)', '19(PAA)'];
+
+    let baseDados = [];
+    let dadosFiltrados = [];
+    let chartStacked = null;
+    let chartProjecao = null;
+
+    // Atualização contínua do relógio
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
+    }, 1000);
+
+    // Identificação de modalidade "Sob Demanda"
+    function verificarSobDemanda(tipoSite) {
+      if (!tipoSite) return false;
+      const t = tipoSite.toUpperCase().replace(/\s+/g, '');
+      return t.includes('TIPO8K1') || t.includes('TIPO8K2') || t.includes('TIPO8L1') || t.includes('TIPO8L2');
+    }
+
+    // Separação de DDD 19(CAS) e 19(PAA)
+    function mapearDDD(row) {
+      const ddd = String(row.DDD || '').trim();
+      if (ddd === '19') {
+        const coord = String(row.Coordenacao || '').toUpperCase();
+        const un = String(row.Unidade_Negocio || '').toUpperCase();
+        const resp = String(row.Responsável || '').toUpperCase();
+        if (coord.includes('PAA') || un.includes('PAA') || resp.includes('PAA')) {
+          return '19(PAA)';
+        }
+        return '19(CAS)';
+      }
+      return ddd;
+    }
+
+    // Regra de Conclusão / Execução
+    function verificarExecucao(row) {
+      const status = String(row.Ativa_Executada || '').toUpperCase().trim();
+      const estado = String(row.Denominacao_Estado_OS || '').toUpperCase().trim();
+      return status === 'EXECUTADA' || estado.includes('CONCLU') || estado.includes('FINALIZ');
+    }
+
+    async function carregarDados() {
+      const icon = document.getElementById('refreshIcon');
+      if (icon) icon.classList.add('fa-spin');
+      document.getElementById('txtStatusConexao').innerText = 'A transferir folha de cálculo e a processar métricas...';
+
+      Papa.parse(CSV_URL, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          if (icon) icon.classList.remove('fa-spin');
+          document.getElementById('txtStatusConexao').innerText = 'Base de dados sincronizada e atualizada em tempo real.';
+
+          baseDados = results.data.map((r, idx) => ({
+            id: r.Numero_OS || `ID-${idx}`,
+            site: r.Site || '',
+            servico: r.Tipo_Servico || r.Denominacao_Classe_Equipamento || '',
+            equipamento: r.Denominacao_Classe_Equipamento || '',
+            gerencia: (r.Gerencia || '').trim(),
+            coordenacao: (r.Coordenacao || '').trim(),
+            gestor: (r.Gestor || '').trim(),
+            responsavel: (r.Responsável || '').trim(),
+            planta: (r.Tipo_Planta || '').trim(),
+            estadoOS: (r.Denominacao_Estado_OS || '').trim(),
+            dtPrevista: r.Data_Prevista || '',
+            tipoSite: r.Denominacao_Tipo_Site || '',
+            ddd: mapearDDD(r),
+            isSobDemanda: verificarSobDemanda(r.Denominacao_Tipo_Site),
+            isExec: verificarExecucao(r),
+            isIncompleta: String(r.Denominacao_Estado_OS || '').toUpperCase().includes('INCOMPLETA')
+          }));
+
+          inicializarFiltros();
+          aplicarFiltros();
+        },
+        error: function(err) {
+          if (icon) icon.classList.remove('fa-spin');
+          document.getElementById('txtStatusConexao').innerText = 'Falha ao sincronizar folha de cálculo online.';
+          console.error(err);
+        }
+      });
+    }
+
+    function popularSelect(id, lista, valorPredefinido = '') {
+      const select = document.getElementById(id);
+      select.innerHTML = '<option value="">Todos</option>';
+      lista.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.textContent = item;
+        if (item === valorPredefinido) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function inicializarFiltros() {
+      const extrairValores = (prop) => [...new Set(baseDados.map(d => d[prop]).filter(Boolean))].sort();
+
+      popularSelect('filtroGerencia', extrairValores('gerencia'), 'SPI');
+      popularSelect('filtroCoordenacao', extrairValores('coordenacao'));
+      popularSelect('filtroGestor', extrairValores('gestor'));
+      popularSelect('filtroResponsavel', extrairValores('responsavel'));
+      popularSelect('filtroTipoPlanta', extrairValores('planta'));
+    }
+
+    function limparFiltros() {
+      document.getElementById('filtroCoordenacao').value = '';
+      document.getElementById('filtroGestor').value = '';
+      document.getElementById('filtroResponsavel').value = '';
+      document.getElementById('filtroTipoPlanta').value = '';
+      document.getElementById('filtroModalidade').value = '';
+      document.getElementById('filtroBusca').value = '';
+      document.getElementById('filtroGerencia').value = 'SPI';
+      aplicarFiltros();
+    }
+
+    function aplicarFiltros() {
+      const ger = document.getElementById('filtroGerencia').value;
+      const coord = document.getElementById('filtroCoordenacao').value;
+      const gest = document.getElementById('filtroGestor').value;
+      const resp = document.getElementById('filtroResponsavel').value;
+      const planta = document.getElementById('filtroTipoPlanta').value;
+      const modalidade = document.getElementById('filtroModalidade').value;
+      const termoBusca = (document.getElementById('filtroBusca').value || '').toLowerCase().trim();
+
+      dadosFiltrados = baseDados.filter(r => {
+        if (ger && r.gerencia !== ger) return false;
+        if (coord && r.coordenacao !== coord) return false;
+        if (gest && r.gestor !== gest) return false;
+        if (resp && r.responsavel !== resp) return false;
+        if (planta && r.planta !== planta) return false;
+        if (modalidade === 'Sob Demanda' && !r.isSobDemanda) return false;
+        if (modalidade === 'Programada' && r.isSobDemanda) return false;
+
+        if (termoBusca) {
+          const stringLinha = `${r.id} ${r.site} ${r.servico} ${r.equipamento} ${r.estadoOS}`.toLowerCase();
+          if (!stringLinha.includes(termoBusca)) return false;
+        }
+        return true;
+      });
+
+      renderizarCards();
+      renderizarGraficos();
+      renderizarTabela();
+    }
+
+    function renderizarCards() {
+      const total = dadosFiltrados.length;
+      const executadas = dadosFiltrados.filter(d => d.isExec).length;
+      const pendentes = total - executadas;
+      const sobDemanda = dadosFiltrados.filter(d => d.isSobDemanda).length;
+      const programadas = total - sobDemanda;
+      const incompletas = dadosFiltrados.filter(d => d.isIncompleta).length;
+
+      const pctExec = total > 0 ? ((executadas / total) * 100).toFixed(1) : '0.0';
+      const pctPend = total > 0 ? ((pendentes / total) * 100).toFixed(1) : '0.0';
+      const pctDemanda = total > 0 ? ((sobDemanda / total) * 100).toFixed(0) : '0';
+
+      document.getElementById('cardTotalOS').innerText = total.toLocaleString('pt-PT');
+      document.getElementById('cardExecutadas').innerText = executadas.toLocaleString('pt-PT');
+      document.getElementById('cardPctExecutadas').innerText = `${pctExec}%`;
+      document.getElementById('cardPendentes').innerText = pendentes.toLocaleString('pt-PT');
+      document.getElementById('cardPctPendentes').innerText = `${pctPend}%`;
+      document.getElementById('cardProgramadas').innerText = programadas.toLocaleString('pt-PT');
+      document.getElementById('cardSobDemanda').innerText = sobDemanda.toLocaleString('pt-PT');
+      document.getElementById('cardPctSobDemanda').innerText = `${pctDemanda}%`;
+      document.getElementById('cardIncompletas').innerText = incompletas.toLocaleString('pt-PT');
+      document.getElementById('cardAtingimento').innerText = `${pctExec}%`;
+    }
+
+    function renderizarGraficos() {
+      const stats = {};
+      DDDS_ORDENADOS.forEach(d => { stats[d] = { total: 0, exec: 0 }; });
+
+      dadosFiltrados.forEach(r => {
+        if (stats[r.ddd]) {
+          stats[r.ddd].total++;
+          if (r.isExec) stats[r.ddd].exec++;
+        }
+      });
+
+      const pctsExec = [];
+      const pctsPend = [];
+      const totaisMeta = [];
+      const projecaoEntrega = [];
+
+      DDDS_ORDENADOS.forEach(d => {
+        const tot = stats[d].total;
+        const exe = stats[d].exec;
+        if (tot === 0) {
+          pctsExec.push(0);
+          pctsPend.push(0);
+          totaisMeta.push(0);
+          projecaoEntrega.push(0);
+        } else {
+          const p = (exe / tot) * 100;
+          pctsExec.push(Number(p.toFixed(1)));
+          pctsPend.push(Number((100 - p).toFixed(1)));
+          totaisMeta.push(tot);
+          // Estimativa de projeção ponderada pelo avanço atual
+          const proj = Math.min(tot, Math.round(exe * 1.15) || Math.round(tot * 0.25));
+          projecaoEntrega.push(proj);
+        }
+      });
+
+      // 1. Barras Empilhadas 100%
+      if (chartStacked) chartStacked.destroy();
+      const ctxStacked = document.getElementById('chartStackedDDD').getContext('2d');
+      chartStacked = new Chart(ctxStacked, {
+        type: 'bar',
+        data: {
+          labels: DDDS_ORDENADOS,
+          datasets: [
+            {
+              label: 'Executadas (%)',
+              data: pctsExec,
+              backgroundColor: '#10b981',
+              borderRadius: 4
+            },
+            {
+              label: 'Pendentes (%)',
+              data: pctsPend,
+              backgroundColor: '#f59e0b',
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true, grid: { display: false } },
+            y: { stacked: true, max: 100, ticks: { callback: v => v + '%' } }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw}%` }
+            }
+          }
+        }
+      });
+
+      // 2. Gráfico de Projeção
+      if (chartProjecao) chartProjecao.destroy();
+      const ctxProj = document.getElementById('chartProjecaoDDD').getContext('2d');
+      chartProjecao = new Chart(ctxProj, {
+        type: 'bar',
+        data: {
+          labels: DDDS_ORDENADOS,
+          datasets: [
+            {
+              label: 'Meta Programada',
+              data: totaisMeta,
+              backgroundColor: '#cbd5e1',
+              borderRadius: 4
+            },
+            {
+              type: 'line',
+              label: 'Projeção Final Estimada',
+              data: projecaoEntrega,
+              borderColor: '#2563eb',
+              backgroundColor: '#2563eb',
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function renderizarTabela() {
+      const tbody = document.getElementById('tabelaCorpo');
+      tbody.innerHTML = '';
+      const corte = dadosFiltrados.slice(0, 100);
+
+      corte.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+        tr.innerHTML = `
+          <td class="p-2.5 font-mono font-semibold text-slate-800">${r.id}</td>
+          <td class="p-2.5 font-medium text-slate-600">${r.site}</td>
+          <td class="p-2.5">${r.servico || '-'}</td>
+          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">${r.ddd}</span></td>
+          <td class="p-2.5">${r.planta}</td>
+          <td class="p-2.5">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isSobDemanda ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
+              ${r.isSobDemanda ? 'Sob Demanda' : 'Programada'}
+            </span>
+          </td>
+          <td class="p-2.5">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isExec ? 'bg-emerald-100 text-emerald-700' : (r.isIncompleta ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700')}">
+              ${r.estadoOS}
+            </span>
+          </td>
+          <td class="p-2.5 text-slate-500">${r.dtPrevista || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('tblRegistrosCount').innerText = `${dadosFiltrados.length.toLocaleString('pt-PT')} registos encontrados (exibindo primeiros 100)`;
+    }
+
+    function exportarCSV() {
+      if (!dadosFiltrados.length) return alert('Sem registos para exportar.');
+      const cabecalhos = ["Numero_OS", "Site", "Servico", "DDD", "Tipo_Planta", "Modalidade", "Estado_OS", "Data_Prevista"];
+      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.servico}"`, d.ddd, d.planta, d.isSobDemanda ? 'Sob Demanda' : 'Programada', `"${d.estadoOS}"`, d.dtPrevista]);
+      const conteudo = [cabecalhos.join(';'), ...linhas.map(e => e.join(';'))].join('\n');
+      
+      const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `preventivas_export_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    window.addEventListener('DOMContentLoaded', carregarDados);
+  </script>
+</body>
+</html>
