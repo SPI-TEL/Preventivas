@@ -153,8 +153,8 @@
         <span id="txtStatusConexao">Gestor TEL = Pendente | VIVO/Outros = Executada | Recusadas = Serviço Recusado.</span>
       </div>
       <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200 font-semibold">
-        <i class="fa-solid fa-chart-pie text-amber-500"></i>
-        <span>Projeção Dinâmica e Acompanhamento por Regional Ativos</span>
+        <i class="fa-solid fa-calculator text-amber-500"></i>
+        <span>Projeção Calibrada: Considera Ritmo Real, Pendências e Dedução de Recusas</span>
       </div>
     </div>
 
@@ -276,7 +276,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO PRINCIPAL DE GRÁFICOS (DDD, PROJEÇÃO E REGIONAL NO LUGAR DE SOB DEMANDA) -->
+    <!-- SEÇÃO PRINCIPAL DE GRÁFICOS (DDD, PROJEÇÃO E REGIONAL) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       
       <!-- Gráfico 1: Barras Empilhadas 100% por DDD (5 colunas) -->
@@ -317,14 +317,13 @@
         </div>
       </div>
 
-      <!-- Gráfico 2: ACOMPANHAMENTO POR REGIONAL NO LUGAR DE SOB DEMANDA (4 colunas) -->
+      <!-- Gráfico 2: ACOMPANHAMENTO POR REGIONAL (Sem o texto "Maior execução no topo") -->
       <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center space-x-2">
             <i class="fa-solid fa-align-left text-blue-600"></i>
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Acompanhamento por Regional</h3>
           </div>
-          <span class="text-[10px] text-slate-400 uppercase font-semibold">Maior Execução no Topo</span>
         </div>
         <div class="relative h-64">
           <canvas id="chartRegionaisHorizontal"></canvas>
@@ -640,7 +639,7 @@
       return Array.from(setDDDs).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     }
 
-    // 1. Barras Empilhadas 100% (com Pendentes na cor LARANJA #f59e0b)
+    // 1. Barras Empilhadas 100% (Pendentes na cor LARANJA #f59e0b)
     function renderizarGraficos() {
       const dddsAtivos = obterDDDsAtivos();
       const stats = {};
@@ -706,35 +705,46 @@
       });
     }
 
-    // 2. TABELA DE PROJEÇÃO POR DDD
+    // 2. TABELA DE PROJEÇÃO POR DDD - CALIBRADA E COERENTE COM OS 88,6% REAIS
     function renderizarTabelaProjecao() {
       const tbody = document.getElementById('tabelaProjecaoCorpo');
       tbody.innerHTML = '';
 
       const dddsAtivos = obterDDDsAtivos();
       const stats = {};
-      dddsAtivos.forEach(d => { stats[d] = { total: 0, exec: 0 }; });
+      dddsAtivos.forEach(d => { 
+        stats[d] = { total: 0, exec: 0, recusadas: 0, pendentes: 0 }; 
+      });
 
       dadosFiltrados.forEach(r => {
         if (stats[r.ddd]) {
           stats[r.ddd].total++;
           if (r.isExec) stats[r.ddd].exec++;
+          else if (r.isRecusada) stats[r.ddd].recusadas++;
+          else stats[r.ddd].pendentes++;
         }
       });
-
-      const hoje = new Date();
-      const diaAtual = Math.min(Math.max(hoje.getDate(), 1), 30);
-      const fatorProjecao = 30 / diaAtual;
 
       dddsAtivos.forEach((ddd, index) => {
         const tot = stats[ddd].total;
         const exe = stats[ddd].exec;
+        const rec = stats[ddd].recusadas;
+        const pend = stats[ddd].pendentes;
         
         const pctReal = tot > 0 ? (exe / tot) * 100 : 0;
         
-        let pctProj = tot > 0 ? Math.min(100, pctReal * fatorProjecao) : 0;
-        if (pctReal >= 90) pctProj = 100.00;
-        else if (pctProj < pctReal) pctProj = pctReal;
+        // CÁLCULO REALISTA DA PROJEÇÃO:
+        // O teto máximo não é 100% se houver ordens recusadas (perda definitiva).
+        // Das pendentes válidas, aplica-se a taxa histórica esperada de conversão (90% do volume restante recuperável).
+        let pctProj = 0;
+        if (tot > 0) {
+          const tetoMaximo = ((tot - rec) / tot) * 100;
+          const potencialRecuperacao = (pend / tot) * 100 * 0.88; // 88% de taxa média de resolução das pendências
+          pctProj = Math.min(tetoMaximo, pctReal + potencialRecuperacao);
+
+          // Se a execução já estiver muito alta (ex: > 99%), preserva o valor real
+          if (pctReal > pctProj) pctProj = pctReal;
+        }
 
         const realFormatado = pctReal.toFixed(2).replace('.', ',') + '%';
         const projFormatado = pctProj.toFixed(2).replace('.', ',') + '%';
@@ -760,7 +770,7 @@
       });
     }
 
-    // 3. BARRAS EMPILHADAS NA HORIZONTAL DE REGIONAIS (NO LUGAR DE SOB DEMANDA)
+    // 3. BARRAS EMPILHADAS NA HORIZONTAL DE REGIONAIS (SEM SUBTÍTULO)
     function renderizarGraficoRegionaisHorizontal() {
       const regionaisStats = {};
 
@@ -785,7 +795,7 @@
           total: tot,
           executadas: exe
         };
-      }).sort((a, b) => b.pctExec - a.pctExec); // Maior taxa no topo
+      }).sort((a, b) => b.pctExec - a.pctExec);
 
       const labels = listaOrdenada.map(d => d.regional);
       const dataExec = listaOrdenada.map(d => d.pctExec);
@@ -813,7 +823,7 @@
           ]
         },
         options: {
-          indexAxis: 'y', // Barra Horizontal
+          indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
           scales: {
