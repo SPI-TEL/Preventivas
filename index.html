@@ -46,13 +46,13 @@
       height: 4px;
     }
 
-    /* Estilo da Tabela de Projeção (Idêntico ao Modelo da Imagem 1) */
+    /* Estilo da Tabela de Projeção */
     .tabela-projecao {
       border-collapse: separate;
       border-spacing: 0 3px;
     }
     .tabela-projecao thead th {
-      background-color: #d1d5db; /* Cinza do cabeçalho */
+      background-color: #d1d5db;
       color: #111827;
       font-weight: 800;
       font-size: 11px;
@@ -78,18 +78,15 @@
       color: #1e293b;
     }
 
-    /* Linha divisória tracejada (como no print) */
     .linha-destaque-top {
       border-top: 1.5px dotted #64748b;
     }
 
-    /* Cores das células de Realizado da Imagem 1 */
-    .bg-real-verde { background-color: #86efac; color: #064e3b; }   /* >= 80% */
-    .bg-real-roxo  { background-color: #d8b4fe; color: #3b0764; }   /* 70% a 79.99% */
-    .bg-real-vermelho { background-color: #fca5a5; color: #7f1d1d; }/* < 70% */
+    .bg-real-verde { background-color: #86efac; color: #064e3b; }
+    .bg-real-roxo  { background-color: #d8b4fe; color: #3b0764; }
+    .bg-real-vermelho { background-color: #fca5a5; color: #7f1d1d; }
     .bg-proj-padrao { background-color: #f8fafc; color: #334155; }
 
-    /* Fixação e rolagem suave das tabelas */
     .table-container {
       max-height: 540px;
       overflow-y: auto;
@@ -148,64 +145,54 @@
 
   <div class="max-w-[1600px] mx-auto px-4 mt-4 space-y-4">
 
-    <!-- BARRA DE STATUS / NOTIFICAÇÃO -->
+    <!-- BARRA DE STATUS -->
     <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-wrap justify-between items-center gap-2 border-l-4 border-l-emerald-500">
       <div class="flex items-center space-x-2 text-xs text-slate-700">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
         <span class="font-bold text-slate-900">Regras Operacionais:</span>
         <span id="txtStatusConexao">Gestor TEL = Pendente | VIVO/Outros = Executada | Recusadas = Serviço Recusado.</span>
       </div>
-      <div class="flex items-center space-x-2 bg-red-50 text-red-700 text-xs px-3 py-1 rounded-full border border-red-200 font-semibold">
-        <i class="fa-solid fa-circle-exclamation text-red-500"></i>
-        <span>Atenção a Serviços Recusados</span>
+      <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200 font-semibold">
+        <i class="fa-solid fa-chart-pie text-amber-500"></i>
+        <span>Projeção Calculada Dinamicamente por Ritmo Operacional</span>
       </div>
     </div>
 
     <!-- CARDS TOTALIZADORES -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-      <!-- Total OS -->
       <div class="card-kpi kpi-blue p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Programadas</span>
           <i class="fa-solid fa-list-check text-sky-500 text-sm"></i>
         </div>
-        <div class="my-2">
-          <span id="cardTotalOS" class="text-2xl font-black text-slate-800">0</span>
-        </div>
+        <div class="my-2"><span id="cardTotalOS" class="text-2xl font-black text-slate-800">0</span></div>
         <p class="text-[10px] text-slate-400 font-medium">Ordens apuradas</p>
       </div>
 
-      <!-- Executadas -->
       <div class="card-kpi kpi-emerald p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Executadas</span>
           <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
         </div>
-        <div class="my-2">
-          <span id="cardExecutadas" class="text-2xl font-black text-emerald-600">0</span>
-        </div>
+        <div class="my-2"><span id="cardExecutadas" class="text-2xl font-black text-emerald-600">0</span></div>
         <div class="flex justify-between text-[10px]">
           <span class="text-slate-400">Concluídas</span>
           <span id="cardPctExecutadas" class="font-bold text-emerald-600">0.0%</span>
         </div>
       </div>
 
-      <!-- Pendentes (TEL) -->
       <div class="card-kpi kpi-amber p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Pendentes (TEL)</span>
           <i class="fa-solid fa-hourglass-half text-amber-500 text-sm"></i>
         </div>
-        <div class="my-2">
-          <span id="cardPendentes" class="text-2xl font-black text-amber-500">0</span>
-        </div>
+        <div class="my-2"><span id="cardPendentes" class="text-2xl font-black text-amber-500">0</span></div>
         <div class="flex justify-between text-[10px]">
           <span class="text-slate-400">Em aberto</span>
           <span id="cardPctPendentes" class="font-bold text-amber-600">0.0%</span>
         </div>
       </div>
 
-      <!-- Sob Demanda (Tipo 8) -->
       <div class="card-kpi kpi-purple p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Sob Demanda</span>
@@ -218,7 +205,6 @@
         <p class="text-[10px] text-slate-400 font-medium">K1, K2, L1 e L2</p>
       </div>
 
-      <!-- Recusadas -->
       <div class="card-kpi kpi-recusadas p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-[11px] font-black uppercase tracking-wider text-red-600">Recusadas</span>
@@ -231,20 +217,17 @@
         <p class="text-[10px] text-red-500 font-bold uppercase tracking-tight">Serviço Recusado</p>
       </div>
 
-      <!-- Eficiência Real -->
       <div class="card-kpi kpi-cyan p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Atingimento Real</span>
           <i class="fa-solid fa-chart-line text-cyan-500 text-sm"></i>
         </div>
-        <div class="my-2">
-          <span id="cardAtingimento" class="text-2xl font-black text-cyan-600">0%</span>
-        </div>
+        <div class="my-2"><span id="cardAtingimento" class="text-2xl font-black text-cyan-600">0%</span></div>
         <p class="text-[10px] text-slate-400 font-medium">Meta Global: 100%</p>
       </div>
     </div>
 
-    <!-- FILTROS DE PESQUISA -->
+    <!-- FILTROS DE PESQUISA (REGIONAL E DDD ATUALIZADOS) -->
     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-2 text-slate-800 text-xs font-bold uppercase tracking-wider">
@@ -263,12 +246,14 @@
           <select id="filtroGerencia" onchange="aoMudarGerencia()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
         </div>
         <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Coordenação</label>
-          <select id="filtroCoordenacao" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+          <!-- Renomeado de Coordenação para Regional -->
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Regional</label>
+          <select id="filtroRegional" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
         </div>
         <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Responsável</label>
-          <select id="filtroResponsavel" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+          <!-- Substituído Responsável por DDD -->
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">DDD</label>
+          <select id="filtroDDD" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
         </div>
         <div>
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Tipo de Rede</label>
@@ -293,10 +278,10 @@
       </div>
     </div>
 
-    <!-- SEÇÃO DE GRÁFICOS E TABELA DE PROJEÇÃO (3 COLUNAS EM TELAS LARGAS) -->
+    <!-- SEÇÃO DE GRÁFICOS E TABELA DE PROJEÇÃO -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       
-      <!-- Gráfico 1: Barras Empilhadas 100% (5 colunas) -->
+      <!-- Gráfico 1: Barras Empilhadas 100% por DDD (com Pendente Laranja) -->
       <div class="lg:col-span-5 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center space-x-2">
@@ -310,7 +295,7 @@
         </div>
       </div>
 
-      <!-- Tabela Projeção por DDD - IDÊNTICA À IMAGEM 1 (3 colunas) -->
+      <!-- Tabela Projeção por DDD com Cálculo Dinâmico Realizado e Projeção -->
       <div class="lg:col-span-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-2">
           <div class="flex items-center space-x-2">
@@ -329,14 +314,12 @@
                 <th>Projeção</th>
               </tr>
             </thead>
-            <tbody id="tabelaProjecaoCorpo">
-              <!-- Preenchido via JavaScript -->
-            </tbody>
+            <tbody id="tabelaProjecaoCorpo"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- Gráfico 3: Detalhamento Sob Demanda (4 Tipos) (4 colunas) -->
+      <!-- Gráfico 3: Detalhamento Sob Demanda (4 Tipos) (com Pendente Laranja) -->
       <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center space-x-2">
@@ -350,6 +333,20 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- NOVO GRÁFICO: BARRAS HORIZONTAIS EMPILHADAS DE REGIONAIS (ORDENADO POR MAIOR EXECUÇÃO NO TOPO) -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <div class="flex justify-between items-center mb-3">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-align-left text-blue-600"></i>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Acompanhamento por Regional (Empilhado Horizontal)</h3>
+        </div>
+        <span class="text-[10px] text-slate-400 uppercase font-semibold">Ordenado por Maior Execução no Topo</span>
+      </div>
+      <div class="relative h-72">
+        <canvas id="chartRegionaisHorizontal"></canvas>
+      </div>
     </div>
 
     <!-- GRÁFICO EVOLUTIVO FUTURISTA -->
@@ -427,8 +424,6 @@
 
   <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5P7-KWKflNkgv3d6LqU-7slIZXbuH1wg0A7daLa6-2yW8fWYLFvUW-iMpMSekZw/pub?gid=2090194119&single=true&output=csv';
-    
-    // Ordem exata dos DDDs da imagem 1
     const SPI_DDDS_EXATO = ['12', '15', '14', '18', '16', '17', '[CAS] 19', '[PAA] 19'];
 
     const ITENS_POR_PAGINA = 60;
@@ -438,6 +433,7 @@
     let dadosFiltrados = [];
     let chartStacked = null;
     let chartSobDemanda = null;
+    let chartRegionais = null;
     let chartDiarizado = null;
 
     setInterval(() => {
@@ -445,7 +441,6 @@
       document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
     }, 1000);
 
-    // Mapeamento dos 4 tipos de Sob Demanda
     function obterSubtipoDemanda(tipoSite) {
       if (!tipoSite) return null;
       const t = tipoSite.toUpperCase().replace(/\s+|_/g, '');
@@ -461,7 +456,6 @@
       return txt.includes('RECUSAD') || txt.includes('SERVICO RECUSADO') || txt.includes('SERVIÇO RECUSADO');
     }
 
-    // Mapeamento exato de rótulo para DDD (conforme Imagem 1: [CAS] 19 e [PAA] 19)
     function mapearDDD(row) {
       const ddd = String(row.DDD || '').trim();
       if (ddd === '19') {
@@ -525,7 +519,7 @@
               servico: r.Tipo_Servico || r.Denominacao_Classe_Equipamento || '',
               equipamento: r.Denominacao_Classe_Equipamento || '',
               gerencia: (r.Gerencia || '').trim(),
-              coordenacao: (r.Coordenacao || '').trim(),
+              regional: (r.Coordenacao || '').trim(),
               gestor: (r.Gestor || '').trim(),
               responsavel: (r.Responsável || '').trim(),
               planta: (r.Tipo_Planta || '').trim(),
@@ -582,8 +576,8 @@
 
       const extrairValores = (prop) => [...new Set(baseEscopo.map(d => d[prop]).filter(Boolean))].sort();
 
-      popularSelect('filtroCoordenacao', extrairValores('coordenacao'));
-      popularSelect('filtroResponsavel', extrairValores('responsavel'));
+      popularSelect('filtroRegional', extrairValores('regional'));
+      popularSelect('filtroDDD', extrairValores('ddd'));
       popularSelect('filtroTipoPlanta', extrairValores('planta'));
     }
 
@@ -598,16 +592,16 @@
 
     function aplicarFiltros() {
       const ger = document.getElementById('filtroGerencia').value;
-      const coord = document.getElementById('filtroCoordenacao').value;
-      const resp = document.getElementById('filtroResponsavel').value;
+      const reg = document.getElementById('filtroRegional').value;
+      const ddd = document.getElementById('filtroDDD').value;
       const planta = document.getElementById('filtroTipoPlanta').value;
       const modalidade = document.getElementById('filtroModalidade').value;
       const termoBusca = (document.getElementById('filtroBusca').value || '').toLowerCase().trim();
 
       dadosFiltrados = baseDados.filter(r => {
         if (ger && r.gerencia !== ger) return false;
-        if (coord && r.coordenacao !== coord) return false;
-        if (resp && r.responsavel !== resp) return false;
+        if (reg && r.regional !== reg) return false;
+        if (ddd && r.ddd !== ddd) return false;
         if (planta && r.planta !== planta) return false;
         if (modalidade === 'Sob Demanda' && !r.isSobDemanda) return false;
         if (modalidade === 'Programada' && r.isSobDemanda) return false;
@@ -625,6 +619,7 @@
       renderizarGraficos();
       renderizarTabelaProjecao();
       renderizarGraficoSobDemanda();
+      renderizarGraficoRegionaisHorizontal();
       renderizarGraficoFuturista();
       renderizarTabela();
     }
@@ -663,7 +658,7 @@
       return Array.from(setDDDs).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     }
 
-    // 1. Barras Empilhadas 100%
+    // 1. Barras Empilhadas 100% (com Pendentes na cor LARANJA #f59e0b)
     function renderizarGraficos() {
       const dddsAtivos = obterDDDsAtivos();
       const stats = {};
@@ -708,7 +703,7 @@
             {
               label: 'Pendentes (TEL) %',
               data: pctsPend,
-              backgroundColor: '#f59e0b',
+              backgroundColor: '#f59e0b', // Pendentes Laranja
               borderRadius: 4
             }
           ]
@@ -729,7 +724,7 @@
       });
     }
 
-    // 2. TABELA DE PROJEÇÃO POR DDD (IDÊNTICA À IMAGEM 1)
+    // 2. TABELA DE PROJEÇÃO POR DDD (Cálculo real do Executado e Projeção Estimada)
     function renderizarTabelaProjecao() {
       const tbody = document.getElementById('tabelaProjecaoCorpo');
       tbody.innerHTML = '';
@@ -745,22 +740,33 @@
         }
       });
 
+      // Estimação da projeção com base nos dias transcorridos vs total do mês
+      const hoje = new Date();
+      const diaAtual = Math.min(Math.max(hoje.getDate(), 1), 30);
+      const fatorProjecao = 30 / diaAtual;
+
       dddsAtivos.forEach((ddd, index) => {
         const tot = stats[ddd].total;
         const exe = stats[ddd].exec;
         
-        let pctNum = tot > 0 ? (exe / tot) * 100 : 0;
-        let pctFormatada = pctNum.toFixed(2).replace('.', ',') + '%';
+        const pctReal = tot > 0 ? (exe / tot) * 100 : 0;
+        
+        // Cálculo real da Projeção
+        let pctProj = tot > 0 ? Math.min(100, pctReal * fatorProjecao) : 0;
+        // Ajuste caso o mês já esteja finalizado ou próximo da conclusão
+        if (pctReal >= 90) pctProj = 100.00;
+        else if (pctProj < pctReal) pctProj = pctReal;
 
-        // Definição de cores idêntica à Imagem 1
+        const realFormatado = pctReal.toFixed(2).replace('.', ',') + '%';
+        const projFormatado = pctProj.toFixed(2).replace('.', ',') + '%';
+
         let corClasse = 'bg-real-verde';
-        if (pctNum < 70) {
+        if (pctReal < 70) {
           corClasse = 'bg-real-vermelho';
-        } else if (pctNum < 80) {
+        } else if (pctReal < 80) {
           corClasse = 'bg-real-roxo';
         }
 
-        // Borda divisória pontilhada conforme observado no print após o DDD 15
         const tr = document.createElement('tr');
         if (index === 2) {
           tr.className = 'linha-destaque-top';
@@ -768,14 +774,14 @@
 
         tr.innerHTML = `
           <td>${ddd}</td>
-          <td class="${corClasse}">${pctFormatada}</td>
-          <td class="bg-proj-padrao">100,00%</td>
+          <td class="${corClasse}">${realFormatado}</td>
+          <td class="bg-proj-padrao">${projFormatado}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // 3. GRÁFICO SOB DEMANDA DETALHADO PELOS 4 TIPOS (K1, K2, L1, L2)
+    // 3. SOB DEMANDA 4 TIPOS (Pendentes na cor Laranja)
     function renderizarGraficoSobDemanda() {
       const tipos = ['Tipo 8 K1', 'Tipo 8 K2', 'Tipo 8 L1', 'Tipo 8 L2'];
       const contagemExec = [0, 0, 0, 0];
@@ -807,7 +813,7 @@
             {
               label: 'Pendentes (TEL)',
               data: contagemPend,
-              backgroundColor: '#cbd5e1',
+              backgroundColor: '#f59e0b', // Pendente Laranja
               borderRadius: 4
             }
           ]
@@ -830,7 +836,79 @@
       });
     }
 
-    // 4. GRÁFICO EVOLUTIVO FUTURISTA
+    // 4. BARRAS EMPILHADAS NA HORIZONTAL DE REGIONAIS (ORDENADO COM MAIOR EXECUÇÃO NO TOPO)
+    function renderizarGraficoRegionaisHorizontal() {
+      const regionaisStats = {};
+
+      dadosFiltrados.forEach(r => {
+        const reg = r.regional || 'OUTROS';
+        if (!regionaisStats[reg]) {
+          regionaisStats[reg] = { total: 0, exec: 0 };
+        }
+        regionaisStats[reg].total++;
+        if (r.isExec) regionaisStats[reg].exec++;
+      });
+
+      // Cálculo de percentuais e ordenação decrescente (maior taxa de execução no topo)
+      const listaOrdenada = Object.keys(regionaisStats).map(reg => {
+        const tot = regionaisStats[reg].total;
+        const exe = regionaisStats[reg].exec;
+        const pctExec = tot > 0 ? (exe / tot) * 100 : 0;
+        const pctPend = 100 - pctExec;
+        return {
+          regional: reg,
+          pctExec: Number(pctExec.toFixed(1)),
+          pctPend: Number(pctPend.toFixed(1)),
+          total: tot,
+          executadas: exe
+        };
+      }).sort((a, b) => b.pctExec - a.pctExec); // Maior execução primeiro
+
+      const labels = listaOrdenada.map(d => d.regional);
+      const dataExec = listaOrdenada.map(d => d.pctExec);
+      const dataPend = listaOrdenada.map(d => d.pctPend);
+
+      if (chartRegionais) chartRegionais.destroy();
+      const ctx = document.getElementById('chartRegionaisHorizontal').getContext('2d');
+      chartRegionais = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Executadas (%)',
+              data: dataExec,
+              backgroundColor: '#10b981',
+              borderRadius: 4
+            },
+            {
+              label: 'Pendentes (%)',
+              data: dataPend,
+              backgroundColor: '#f59e0b', // Pendentes Laranja
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          indexAxis: 'y', // Barra Horizontal
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true, max: 100, ticks: { callback: v => v + '%' } },
+            y: { stacked: true, grid: { display: false } }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.dataset.label}: ${ctx.raw}%`
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 5. GRÁFICO EVOLUTIVO FUTURISTA
     function renderizarGraficoFuturista() {
       const diasMes = 31;
       const labels = Array.from({ length: diasMes }, (_, i) => `${i + 1}/10`);
@@ -963,7 +1041,7 @@
       });
     }
 
-    // 5. TABELA ANALÍTICA COM PAGINAÇÃO DE 60 LINHAS
+    // 6. TABELA ANALÍTICA COM PAGINAÇÃO DE 60 LINHAS
     function renderizarTabela() {
       const tbody = document.getElementById('tabelaCorpo');
       tbody.innerHTML = '';
