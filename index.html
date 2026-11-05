@@ -103,11 +103,25 @@
       z-index: 20;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     }
+
+    /* Custom Dropdown Multi-Select */
+    .dropdown-menu-custom {
+      max-height: 250px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    .dropdown-menu-custom::-webkit-scrollbar {
+      width: 5px;
+    }
+    .dropdown-menu-custom::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body class="min-h-screen pb-12">
 
-  <!-- CABEÇALHO PADRÃO -->
+  <!-- CABEÇALHO -->
   <header class="bg-[#0f172a] text-white shadow-lg border-b border-slate-800">
     <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center space-x-3">
@@ -231,50 +245,118 @@
       </div>
     </div>
 
-    <!-- FILTROS DE PESQUISA -->
-    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+    <!-- FILTROS DE PESQUISA (COM SUPORTE A MÚLTIPLA ESCOLHA) -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative z-30">
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-2 text-slate-800 text-xs font-bold uppercase tracking-wider">
           <i class="fa-solid fa-filter text-blue-600"></i>
-          <span>Filtros de Pesquisa</span>
+          <span>Filtros de Pesquisa (Multi-Seleção)</span>
         </div>
-        <button onclick="limparFiltros()" class="text-xs text-blue-600 hover:text-blue-800 flex items-center space-x-1 font-semibold">
+        <button onclick="limparFiltros()" class="text-xs text-blue-600 hover:text-blue-800 flex items-center space-x-1 font-semibold transition">
           <i class="fa-solid fa-rotate-left"></i>
           <span>Limpar Filtros</span>
         </button>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
-        <!-- NOVO FILTRO: MÊS (DESCRIÇÃO POR EXTENSO) -->
-        <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Mês de Execução</label>
-          <select id="filtroMes" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-blue-700"></select>
+        
+        <!-- 1. MÊS DE EXECUÇÃO -->
+        <div class="relative multi-select-container" id="container-filtroMes">
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Mês Execução</label>
+          <button type="button" onclick="alternarDropdown('filtroMes')" class="w-full text-left text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500">
+            <span class="truncate pr-1 text-slate-700 font-semibold" id="label-filtroMes">Todos</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+          </button>
+          <div id="dropdown-filtroMes" class="hidden absolute top-full left-0 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-xl p-2 z-50">
+            <div class="flex justify-between pb-1 mb-1 border-b border-slate-100 text-[10px] text-blue-600 font-bold">
+              <button type="button" onclick="marcarTodos('filtroMes', true)" class="hover:underline">Todos</button>
+              <button type="button" onclick="marcarTodos('filtroMes', false)" class="hover:underline text-slate-400">Limpar</button>
+            </div>
+            <div class="dropdown-menu-custom space-y-1" id="opcoes-filtroMes"></div>
+          </div>
         </div>
-        <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Regional / Coordenação</label>
-          <select id="filtroRegional" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+
+        <!-- 2. COORDENAÇÃO / COORDENADOR (COLUNA Z) -->
+        <div class="relative multi-select-container" id="container-filtroCoordenacao">
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Coordenação (Col. Z)</label>
+          <button type="button" onclick="alternarDropdown('filtroCoordenacao')" class="w-full text-left text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500">
+            <span class="truncate pr-1 text-slate-700 font-semibold" id="label-filtroCoordenacao">Todos</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+          </button>
+          <div id="dropdown-filtroCoordenacao" class="hidden absolute top-full left-0 mt-1 w-60 bg-white border border-slate-200 rounded-lg shadow-xl p-2 z-50">
+            <div class="flex justify-between pb-1 mb-1 border-b border-slate-100 text-[10px] text-blue-600 font-bold">
+              <button type="button" onclick="marcarTodos('filtroCoordenacao', true)" class="hover:underline">Todos</button>
+              <button type="button" onclick="marcarTodos('filtroCoordenacao', false)" class="hover:underline text-slate-400">Limpar</button>
+            </div>
+            <div class="dropdown-menu-custom space-y-1" id="opcoes-filtroCoordenacao"></div>
+          </div>
         </div>
-        <div>
+
+        <!-- 3. DDD -->
+        <div class="relative multi-select-container" id="container-filtroDDD">
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">DDD</label>
-          <select id="filtroDDD" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+          <button type="button" onclick="alternarDropdown('filtroDDD')" class="w-full text-left text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500">
+            <span class="truncate pr-1 text-slate-700 font-semibold" id="label-filtroDDD">Todos</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+          </button>
+          <div id="dropdown-filtroDDD" class="hidden absolute top-full left-0 mt-1 w-52 bg-white border border-slate-200 rounded-lg shadow-xl p-2 z-50">
+            <div class="flex justify-between pb-1 mb-1 border-b border-slate-100 text-[10px] text-blue-600 font-bold">
+              <button type="button" onclick="marcarTodos('filtroDDD', true)" class="hover:underline">Todos</button>
+              <button type="button" onclick="marcarTodos('filtroDDD', false)" class="hover:underline text-slate-400">Limpar</button>
+            </div>
+            <div class="dropdown-menu-custom space-y-1" id="opcoes-filtroDDD"></div>
+          </div>
         </div>
-        <div>
+
+        <!-- 4. TIPO DE SERVIÇO -->
+        <div class="relative multi-select-container" id="container-filtroTipoServico">
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Tipo de Serviço</label>
-          <select id="filtroTipoServico" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+          <button type="button" onclick="alternarDropdown('filtroTipoServico')" class="w-full text-left text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500">
+            <span class="truncate pr-1 text-slate-700 font-semibold" id="label-filtroTipoServico">Todos</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+          </button>
+          <div id="dropdown-filtroTipoServico" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-slate-200 rounded-lg shadow-xl p-2 z-50">
+            <div class="flex justify-between pb-1 mb-1 border-b border-slate-100 text-[10px] text-blue-600 font-bold">
+              <button type="button" onclick="marcarTodos('filtroTipoServico', true)" class="hover:underline">Todos</button>
+              <button type="button" onclick="marcarTodos('filtroTipoServico', false)" class="hover:underline text-slate-400">Limpar</button>
+            </div>
+            <div class="dropdown-menu-custom space-y-1" id="opcoes-filtroTipoServico"></div>
+          </div>
         </div>
-        <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Classe Equipamento</label>
-          <select id="filtroEquipamento" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+
+        <!-- 5. CLASSE EQUIPAMENTO -->
+        <div class="relative multi-select-container" id="container-filtroEquipamento">
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Equipamento</label>
+          <button type="button" onclick="alternarDropdown('filtroEquipamento')" class="w-full text-left text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500">
+            <span class="truncate pr-1 text-slate-700 font-semibold" id="label-filtroEquipamento">Todos</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+          </button>
+          <div id="dropdown-filtroEquipamento" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-slate-200 rounded-lg shadow-xl p-2 z-50">
+            <div class="flex justify-between pb-1 mb-1 border-b border-slate-100 text-[10px] text-blue-600 font-bold">
+              <button type="button" onclick="marcarTodos('filtroEquipamento', true)" class="hover:underline">Todos</button>
+              <button type="button" onclick="marcarTodos('filtroEquipamento', false)" class="hover:underline text-slate-400">Limpar</button>
+            </div>
+            <div class="dropdown-menu-custom space-y-1" id="opcoes-filtroEquipamento"></div>
+          </div>
         </div>
-        <div>
+
+        <!-- 6. MODALIDADE -->
+        <div class="relative multi-select-container" id="container-filtroModalidade">
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Modalidade</label>
-          <select id="filtroModalidade" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
-            <option value="">Todas</option>
-            <option value="Programada">Programadas</option>
-            <option value="Sob Demanda">Sob Demanda (Tipo 8)</option>
-            <option value="Recusadas">Apenas Recusadas</option>
-          </select>
+          <button type="button" onclick="alternarDropdown('filtroModalidade')" class="w-full text-left text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500">
+            <span class="truncate pr-1 text-slate-700 font-semibold" id="label-filtroModalidade">Todas</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+          </button>
+          <div id="dropdown-filtroModalidade" class="hidden absolute top-full left-0 mt-1 w-52 bg-white border border-slate-200 rounded-lg shadow-xl p-2 z-50">
+            <div class="flex justify-between pb-1 mb-1 border-b border-slate-100 text-[10px] text-blue-600 font-bold">
+              <button type="button" onclick="marcarTodos('filtroModalidade', true)" class="hover:underline">Todas</button>
+              <button type="button" onclick="marcarTodos('filtroModalidade', false)" class="hover:underline text-slate-400">Limpar</button>
+            </div>
+            <div class="dropdown-menu-custom space-y-1" id="opcoes-filtroModalidade"></div>
+          </div>
         </div>
+
+        <!-- 7. BUSCA LIVRE -->
         <div>
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Busca Livre</label>
           <div class="relative">
@@ -282,6 +364,7 @@
             <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -378,8 +461,9 @@
             <tr>
               <th class="p-3 font-bold border-b border-slate-200">Nº OS</th>
               <th class="p-3 font-bold border-b border-slate-200">Site</th>
-              <th class="p-3 font-bold border-b border-slate-200">Equipamento / Serviço</th>
+              <th class="p-3 font-bold border-b border-slate-200">Coordenação (Z)</th>
               <th class="p-3 font-bold border-b border-slate-200">DDD</th>
+              <th class="p-3 font-bold border-b border-slate-200">Equipamento / Serviço</th>
               <th class="p-3 font-bold border-b border-slate-200">Tipo de Site</th>
               <th class="p-3 font-bold border-b border-slate-200">Modalidade</th>
               <th class="p-3 font-bold border-b border-slate-200">Gestor</th>
@@ -417,7 +501,7 @@
   </div>
 
   <script>
-    // URL ATUALIZADA DA PLANILHA GOOGLE
+    // URL DA PLANILHA GOOGLE
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vREGkcm_88s0ng1jUWoi2RkqynZa035-X49n9C8wt2wGNq37OkXpvrugFvJrCgbp3MtIGR7kf0StmXP/pub?gid=665330348&single=true&output=csv';
     const SPI_DDDS_EXATO = ['12', '14', '15', '16', '17', '18', '[CAS] 19', '[PAA] 19'];
 
@@ -439,18 +523,48 @@
     let mesAtualDetectado = null;
     let mesAnteriorDetectado = null;
 
+    // Gerenciador de estado para filtros de múltipla escolha
+    const selecionados = {
+      filtroMes: [],
+      filtroCoordenacao: [],
+      filtroDDD: [],
+      filtroTipoServico: [],
+      filtroEquipamento: [],
+      filtroModalidade: []
+    };
+
     setInterval(() => {
       const now = new Date();
       document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
     }, 1000);
 
-    function getVal(row, chavesPossiveis) {
+    // Fecha dropdowns ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.multi-select-container')) {
+        document.querySelectorAll('[id^="dropdown-"]').forEach(d => d.classList.add('hidden'));
+      }
+    });
+
+    function alternarDropdown(id) {
+      const drop = document.getElementById(`dropdown-${id}`);
+      const estavaOculto = drop.classList.contains('hidden');
+      document.querySelectorAll('[id^="dropdown-"]').forEach(d => d.classList.add('hidden'));
+      if (estavaOculto) drop.classList.remove('hidden');
+    }
+
+    // Busca valor flexível ignorando case ou busca por índice de coluna (ex: Coluna Z = índice 25)
+    function getVal(row, chavesPossiveis, colIndex = -1) {
       const keys = Object.keys(row);
       for (const cp of chavesPossiveis) {
         const achou = keys.find(k => k.trim().toLowerCase() === cp.trim().toLowerCase());
         if (achou && row[achou] !== undefined && row[achou] !== null) {
-          return String(row[achou]).trim();
+          const val = String(row[achou]).trim();
+          if (val) return val;
         }
+      }
+      if (colIndex >= 0 && colIndex < keys.length) {
+        const val = String(row[keys[colIndex]] || '').trim();
+        if (val) return val;
       }
       return '';
     }
@@ -484,9 +598,10 @@
     function mapearDDD(row) {
       const regional = getVal(row, ['Regional', 'Regiao']).toUpperCase();
       const un = getVal(row, ['Unidade Negócio', 'Unidade Negocio', 'Denominação Unidade Negócio']).toUpperCase();
+      const coord = getVal(row, ['Coordenador', 'Coordenacao', 'Coordenação'], 25).toUpperCase();
       const site = getVal(row, ['Site']).toUpperCase();
       
-      const textoCompleto = `${regional} ${un} ${site}`;
+      const textoCompleto = `${regional} ${un} ${coord} ${site}`;
 
       const match = regional.match(/^(\d{2})/);
       let ddd = match ? match[1] : '';
@@ -539,6 +654,9 @@
             const tipoSite = getVal(r, ['Denominação do Tipo de Site', 'Denominacao do Tipo de Site', 'Tipo de Site']);
             const subtipoDemanda = obterSubtipoDemanda(tipoSite);
 
+            // COLUNA Z: Coordenador / Coordenação (índice 25 no CSV padrão A-Z)
+            const coordenador = getVal(r, ['Coordenador', 'Coordenador(a)', 'Coordenação', 'Coordenacao', 'Nome Coordenador'], 25) || getVal(r, ['Regional', 'Região']) || 'Outros';
+
             const dtConc = getVal(r, ['Data/Hora de Conclusão', 'Data de Conclusão', 'Data Conclusao']);
             const dtMod = getVal(r, ['Data Última Modificação', 'Data Ultima Modificacao']);
             const dtEdic = getVal(r, ['Data/Hora Edição', 'Data Hora Edicao']);
@@ -553,11 +671,9 @@
               diaRef = ((idx * 7 + 3) % 30) + 1;
             }
 
-            // Mapeamento do mês de execução (número convertido)
-            const rawMesExec = getVal(r, ['Mês Execução', 'Mes Execucao', 'Mês Execucao']);
+            const rawMesExec = getVal(r, ['Mês Execução', 'Mes Execucao']);
             const numMesExec = parseInt(rawMesExec, 10) || null;
 
-            // Identificação do mês atual indicado na planilha
             const rawMesAtual = getVal(r, ['Mês atual', 'Mes atual']);
             const numMesAtual = parseInt(rawMesAtual, 10);
             if (!mesAtualPlanilha && numMesAtual && numMesAtual >= 1 && numMesAtual <= 12) {
@@ -567,12 +683,13 @@
             return {
               id: getVal(r, ['Número OS', 'Numero OS']) || `ID-${idx}`,
               site: getVal(r, ['Site']),
-              servico: getVal(r, ['Tipo de Serviço', 'Tipo de Servico', 'Denominação OS', 'Denominacao OS']),
-              equipamento: getVal(r, ['Denominação Classe Equipamento', 'Denominacao Classe Equipamento', 'Classe Equipamento']),
-              regional: getVal(r, ['Regional', 'Unidade Negócio', 'Unidade Negocio']),
+              servico: getVal(r, ['Tipo de Serviço', 'Tipo de Servico', 'Denominação OS']),
+              equipamento: getVal(r, ['Denominação Classe Equipamento', 'Classe Equipamento']),
+              coordenacao: coordenador,
+              regional: getVal(r, ['Regional', 'Unidade Negócio']),
               gestor: gestor,
               tipoSite: tipoSite,
-              estadoOS: getVal(r, ['Denominação Estado OS', 'Denominacao Estado OS', 'Estado OS']),
+              estadoOS: getVal(r, ['Denominação Estado OS', 'Estado OS']),
               dtPrevista: getVal(r, ['Data Prevista']),
               ddd: mapearDDD(r),
               subtipoDemanda: subtipoDemanda,
@@ -592,6 +709,9 @@
           }
           mesAnteriorDetectado = mesAtualDetectado === 1 ? 12 : mesAtualDetectado - 1;
 
+          // Define por padrão a seleção no mês atual
+          selecionados.filtroMes = [String(mesAtualDetectado)];
+
           inicializarFiltros();
           aplicarFiltros();
         },
@@ -603,99 +723,169 @@
       });
     }
 
-    function popularSelect(id, lista, valorPredefinido = '') {
-      const select = document.getElementById(id);
-      if (!select) return;
-      select.innerHTML = '<option value="">Todos</option>';
-      lista.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item;
-        opt.textContent = item;
-        if (item === valorPredefinido) opt.selected = true;
-        select.appendChild(opt);
+    // Configuração dos Dropdowns Multi-Select
+    function configurarMultiSelect(id, itens, itemLabelMap = null) {
+      const container = document.getElementById(`opcoes-${id}`);
+      container.innerHTML = '';
+
+      itens.forEach(valor => {
+        const labelText = itemLabelMap && itemLabelMap[valor] ? itemLabelMap[valor] : valor;
+        const isChecked = selecionados[id].includes(String(valor));
+
+        const itemDiv = document.createElement('label');
+        itemDiv.className = 'flex items-center space-x-2 px-2 py-1 text-xs text-slate-700 hover:bg-slate-100 rounded cursor-pointer select-none';
+        itemDiv.innerHTML = `
+          <input type="checkbox" value="${valor}" ${isChecked ? 'checked' : ''} onchange="aoMudarCheckbox('${id}', this)" class="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 border-slate-300">
+          <span class="truncate">${labelText}</span>
+        `;
+        container.appendChild(itemDiv);
       });
+
+      atualizarLabelDropdown(id);
+    }
+
+    function aoMudarCheckbox(id, checkbox) {
+      const val = checkbox.value;
+      if (checkbox.checked) {
+        if (!selecionados[id].includes(val)) selecionados[id].push(val);
+      } else {
+        selecionados[id] = selecionados[id].filter(v => v !== val);
+      }
+      atualizarLabelDropdown(id);
+      aplicarFiltros();
+    }
+
+    function marcarTodos(id, marcar) {
+      const checkboxes = document.querySelectorAll(`#opcoes-${id} input[type="checkbox"]`);
+      selecionados[id] = [];
+      checkboxes.forEach(cb => {
+        cb.checked = marcar;
+        if (marcar) selecionados[id].push(cb.value);
+      });
+      atualizarLabelDropdown(id);
+      aplicarFiltros();
+    }
+
+    function atualizarLabelDropdown(id) {
+      const btnLabel = document.getElementById(`label-${id}`);
+      const qtd = selecionados[id].length;
+      const totalOpcoes = document.querySelectorAll(`#opcoes-${id} input[type="checkbox"]`).length;
+
+      if (qtd === 0 || qtd === totalOpcoes) {
+        btnLabel.innerText = id === 'filtroModalidade' ? 'Todas' : 'Todos';
+        btnLabel.className = 'truncate pr-1 text-slate-600 font-semibold';
+      } else if (qtd === 1) {
+        const val = selecionados[id][0];
+        if (id === 'filtroMes') {
+          btnLabel.innerText = NOMES_MESES[val] || val;
+        } else {
+          btnLabel.innerText = val;
+        }
+        btnLabel.className = 'truncate pr-1 text-blue-600 font-bold';
+      } else {
+        btnLabel.innerText = `${qtd} selecionados`;
+        btnLabel.className = 'truncate pr-1 text-blue-600 font-bold';
+      }
     }
 
     function inicializarFiltros() {
-      // Popular Select de Mês (com Mês Atual e Mês Anterior no topo)
-      const selectMes = document.getElementById('filtroMes');
-      selectMes.innerHTML = '';
-
-      const mesesPresentes = [...new Set(baseDados.map(d => d.mesExec).filter(Boolean))].sort((a, b) => b - a);
-
-      // Opção Mês Atual
-      const optAtual = document.createElement('option');
-      optAtual.value = String(mesAtualDetectado);
-      optAtual.textContent = `${NOMES_MESES[mesAtualDetectado] || 'Mês ' + mesAtualDetectado} (Atual)`;
-      optAtual.selected = true;
-      selectMes.appendChild(optAtual);
-
-      // Opção Mês Anterior
-      const optAnterior = document.createElement('option');
-      optAnterior.value = String(mesAnteriorDetectado);
-      optAnterior.textContent = `${NOMES_MESES[mesAnteriorDetectado] || 'Mês ' + mesAnteriorDetectado} (Anterior)`;
-      selectMes.appendChild(optAnterior);
-
-      // Outros meses se existirem na base
+      // 1. Mês de Execução
+      const mesesPresentes = [...new Set(baseDados.map(d => d.mesExec).filter(Boolean))].sort((a, b) => a - b);
+      const labelMapMes = {};
       mesesPresentes.forEach(m => {
-        if (m !== mesAtualDetectado && m !== mesAnteriorDetectado) {
-          const opt = document.createElement('option');
-          opt.value = String(m);
-          opt.textContent = NOMES_MESES[m] || `Mês ${m}`;
-          selectMes.appendChild(opt);
-        }
+        let tag = '';
+        if (m === mesAtualDetectado) tag = ' (Atual)';
+        else if (m === mesAnteriorDetectado) tag = ' (Anterior)';
+        labelMapMes[m] = `${NOMES_MESES[m] || 'Mês ' + m}${tag}`;
       });
+      configurarMultiSelect('filtroMes', mesesPresentes, labelMapMes);
 
-      // Opção para ver todos os meses
-      const optTodos = document.createElement('option');
-      optTodos.value = '';
-      optTodos.textContent = 'Todos os Meses';
-      selectMes.appendChild(optTodos);
-
+      // 2. Coordenação / Coordenadores (Coluna Z)
       const extrairValores = (prop) => [...new Set(baseDados.map(d => d[prop]).filter(Boolean))].sort();
+      configurarMultiSelect('filtroCoordenacao', extrairValores('coordenacao'));
 
-      popularSelect('filtroRegional', extrairValores('regional'));
-      popularSelect('filtroDDD', extrairValores('ddd'));
-      popularSelect('filtroTipoServico', extrairValores('servico'));
-      popularSelect('filtroEquipamento', extrairValores('equipamento'));
+      // 3. DDD
+      configurarMultiSelect('filtroDDD', extrairValores('ddd'));
+
+      // 4. Tipo de Serviço
+      configurarMultiSelect('filtroTipoServico', extrairValores('servico'));
+
+      // 5. Classe Equipamento
+      configurarMultiSelect('filtroEquipamento', extrairValores('equipamento'));
+
+      // 6. Modalidade
+      configurarMultiSelect('filtroModalidade', ['Programada', 'Sob Demanda', 'Recusadas']);
     }
 
     function limparFiltros() {
-      // Ao limpar filtros, mantém o padrão do Mês Atual selecionado
-      document.getElementById('filtroMes').value = String(mesAtualDetectado);
-      document.getElementById('filtroRegional').value = '';
-      document.getElementById('filtroDDD').value = '';
-      document.getElementById('filtroTipoServico').value = '';
-      document.getElementById('filtroEquipamento').value = '';
-      document.getElementById('filtroModalidade').value = '';
+      // Retorna ao mês atual como padrão e limpa os outros
+      selecionados.filtroMes = [String(mesAtualDetectado)];
+      selecionados.filtroCoordenacao = [];
+      selecionados.filtroDDD = [];
+      selecionados.filtroTipoServico = [];
+      selecionados.filtroEquipamento = [];
+      selecionados.filtroModalidade = [];
+
       document.getElementById('filtroBusca').value = '';
+
+      ['filtroMes', 'filtroCoordenacao', 'filtroDDD', 'filtroTipoServico', 'filtroEquipamento', 'filtroModalidade'].forEach(id => {
+        const checkboxes = document.querySelectorAll(`#opcoes-${id} input[type="checkbox"]`);
+        checkboxes.forEach(cb => {
+          cb.checked = selecionados[id].includes(cb.value);
+        });
+        atualizarLabelDropdown(id);
+      });
+
       paginaAtual = 1;
       aplicarFiltros();
     }
 
     function aplicarFiltros() {
-      const mesSel = document.getElementById('filtroMes').value;
-      const reg = document.getElementById('filtroRegional').value;
-      const ddd = document.getElementById('filtroDDD').value;
-      const serv = document.getElementById('filtroTipoServico').value;
-      const equip = document.getElementById('filtroEquipamento').value;
-      const modalidade = document.getElementById('filtroModalidade').value;
       const termoBusca = (document.getElementById('filtroBusca').value || '').toLowerCase().trim();
 
       dadosFiltrados = baseDados.filter(r => {
-        if (mesSel && r.mesExec !== null && String(r.mesExec) !== mesSel) return false;
-        if (reg && r.regional !== reg) return false;
-        if (ddd && r.ddd !== ddd) return false;
-        if (serv && r.servico !== serv) return false;
-        if (equip && r.equipamento !== equip) return false;
-        if (modalidade === 'Sob Demanda' && !r.isSobDemanda) return false;
-        if (modalidade === 'Programada' && r.isSobDemanda) return false;
-        if (modalidade === 'Recusadas' && !r.isRecusada) return false;
+        // Filtro Mês
+        if (selecionados.filtroMes.length > 0 && r.mesExec !== null) {
+          if (!selecionados.filtroMes.includes(String(r.mesExec))) return false;
+        }
 
+        // Filtro Coordenação (Coluna Z)
+        if (selecionados.filtroCoordenacao.length > 0) {
+          if (!selecionados.filtroCoordenacao.includes(r.coordenacao)) return false;
+        }
+
+        // Filtro DDD
+        if (selecionados.filtroDDD.length > 0) {
+          if (!selecionados.filtroDDD.includes(r.ddd)) return false;
+        }
+
+        // Filtro Tipo Serviço
+        if (selecionados.filtroTipoServico.length > 0) {
+          if (!selecionados.filtroTipoServico.includes(r.servico)) return false;
+        }
+
+        // Filtro Equipamento
+        if (selecionados.filtroEquipamento.length > 0) {
+          if (!selecionados.filtroEquipamento.includes(r.equipamento)) return false;
+        }
+
+        // Filtro Modalidade (múltipla escolha)
+        if (selecionados.filtroModalidade.length > 0) {
+          const pass = selecionados.filtroModalidade.some(mod => {
+            if (mod === 'Sob Demanda') return r.isSobDemanda;
+            if (mod === 'Programada') return !r.isSobDemanda;
+            if (mod === 'Recusadas') return r.isRecusada;
+            return false;
+          });
+          if (!pass) return false;
+        }
+
+        // Busca Livre
         if (termoBusca) {
-          const stringLinha = `${r.id} ${r.site} ${r.servico} ${r.equipamento} ${r.estadoOS} ${r.gestor} ${r.ddd}`.toLowerCase();
+          const stringLinha = `${r.id} ${r.site} ${r.coordenacao} ${r.servico} ${r.equipamento} ${r.estadoOS} ${r.gestor} ${r.ddd}`.toLowerCase();
           if (!stringLinha.includes(termoBusca)) return false;
         }
+
         return true;
       });
 
@@ -1081,8 +1271,9 @@
         tr.innerHTML = `
           <td class="p-3 font-mono font-semibold text-slate-800">${r.id}</td>
           <td class="p-3 font-medium text-slate-600">${r.site}</td>
-          <td class="p-3">${r.equipamento || r.servico || '-'}</td>
+          <td class="p-3 font-semibold text-slate-700">${r.coordenacao}</td>
           <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">${r.ddd}</span></td>
+          <td class="p-3">${r.equipamento || r.servico || '-'}</td>
           <td class="p-3">${r.tipoSite || '-'}</td>
           <td class="p-3">
             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isSobDemanda ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
@@ -1132,8 +1323,8 @@
 
     function exportarCSV() {
       if (!dadosFiltrados.length) return alert('Sem registros para exportar.');
-      const cabecalhos = ["Numero_OS", "Site", "Servico", "DDD", "Tipo_Site", "Modalidade", "Gestor", "Situacao", "Data_Prevista"];
-      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.servico}"`, d.ddd, `"${d.tipoSite}"`, d.isSobDemanda ? d.subtipoDemanda : 'Programada', d.gestor, d.isRecusada ? 'Recusada' : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
+      const cabecalhos = ["Numero_OS", "Site", "Coordenacao", "DDD", "Servico", "Tipo_Site", "Modalidade", "Gestor", "Situacao", "Data_Prevista"];
+      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.coordenacao}"`, d.ddd, `"${d.servico}"`, `"${d.tipoSite}"`, d.isSobDemanda ? d.subtipoDemanda : 'Programada', d.gestor, d.isRecusada ? 'Recusada' : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
       const conteudo = [cabecalhos.join(';'), ...linhas.map(e => e.join(';'))].join('\n');
       
       const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
