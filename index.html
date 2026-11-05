@@ -320,7 +320,7 @@
           </div>
         </div>
 
-        <!-- 4. NOVO: FILTRO RECUSADAS (EM SUBSTITUIÇÃO A TIPO DE SERVIÇO) -->
+        <!-- 4. FILTRO RECUSADAS -->
         <div class="relative multi-select-container" id="container-filtroRecusadas">
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Recusadas</label>
           <button type="button" onclick="alternarDropdown('filtroRecusadas')" class="w-full text-left text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500">
@@ -515,7 +515,6 @@
   <script>
     // URL DA PLANILHA GOOGLE LIVE (CSV)
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vREGkcm_88s0ng1jUWoi2RkqynZa035-X49n9C8wt2wGNq37OkXpvrugFvJrCgbp3MtIGR7kf0StmXP/pub?gid=665330348&single=true&output=csv';
-    const SPI_DDDS_EXATO = ['12', '14', '15', '16', '17', '18', '[CAS] 19', '[PAA] 19'];
 
     const NOMES_MESES = {
       1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
@@ -535,7 +534,7 @@
     let mesAtualDetectado = null;
     let mesAnteriorDetectado = null;
 
-    // Estado dos filtros múltiplos (tipoServico substituído por recusadas)
+    // Estado dos filtros múltiplos
     const selecionados = {
       filtroMes: [],
       filtroCoordenacao: [],
@@ -629,7 +628,7 @@
         return '[CAS] 19';
       }
 
-      return ddd || 'SPI';
+      return ddd || '';
     }
 
     function extrairDiaCorreto(dataStr) {
@@ -819,10 +818,11 @@
       const extrairValores = (prop) => [...new Set(baseDados.map(d => d[prop]).filter(Boolean))].sort();
       configurarMultiSelect('filtroCoordenacao', extrairValores('coordenacao'));
 
-      // 3. DDD
-      configurarMultiSelect('filtroDDD', extrairValores('ddd'));
+      // 3. DDD (Excluindo valores vazios ou SPI)
+      const dddsLista = [...new Set(baseDados.map(d => d.ddd).filter(d => Boolean(d) && d !== 'SPI'))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+      configurarMultiSelect('filtroDDD', dddsLista);
 
-      // 4. NOVO: Filtro de Recusadas (Mês Atual, D+20 e Não Recusadas)
+      // 4. Filtro de Recusadas (Mês Atual, D+20 e Não Recusadas)
       const opcoesRecusadas = ['REC_MES', 'REC_D20', 'NAO_REC'];
       const labelMapRecusadas = {
         'REC_MES': 'Recusadas (Mês Atual)',
@@ -890,7 +890,7 @@
           if (!selecionados.filtroDDD.includes(r.ddd)) return false;
         }
 
-        // 4. NOVO: FILTRO RECUSADAS
+        // 4. Filtro Recusadas
         if (selecionados.filtroRecusadas.length > 0) {
           const passRec = selecionados.filtroRecusadas.some(opcao => {
             if (opcao === 'REC_MES') return r.isRecusada && !r.isD20MesAnterior;
@@ -990,9 +990,18 @@
       document.getElementById('cardAtingimento').innerText = `${pctExec}%`;
     }
 
+    // Retorna os DDDs ativos SEM o SPI
     function obterDDDsAtivos() {
-      const setDDDs = new Set(dadosFiltrados.map(d => d.ddd).filter(Boolean));
-      if (setDDDs.size === 0) return SPI_DDDS_EXATO;
+      const listaPadrao = ['[CAS] 19', '[PAA] 19', '12', '14', '16', '17', '18'];
+      
+      const setDDDs = new Set(
+        dadosFiltrados
+          .map(d => d.ddd)
+          .filter(d => Boolean(d) && d !== 'SPI' && d !== 'Outros')
+      );
+      
+      if (setDDDs.size === 0) return listaPadrao;
+      
       return Array.from(setDDDs).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     }
 
@@ -1095,7 +1104,7 @@
       });
     }
 
-    // 2. Tabela de Projeção por DDD
+    // 2. Tabela de Projeção por DDD (Sem o SPI)
     function renderizarTabelaProjecao() {
       const tbody = document.getElementById('tabelaProjecaoCorpo');
       tbody.innerHTML = '';
