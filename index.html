@@ -168,7 +168,7 @@
       <div class="flex items-center space-x-2 text-xs text-slate-700">
         <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
         <span class="font-bold text-slate-900">Regras de Filtro:</span>
-        <span id="txtStatusConexao">OS Pai = "SIM" é desconsiderada de todos os cálculos | Recusadas D+20 mantidas até o dia 20 do mês subsequente.</span>
+        <span id="txtStatusConexao">OS Pai = "SIM" desconsiderada | Ordenação dos DDDs: 12, 14, 15, 16, 17, 18, 19(CAS) e 19(PAA).</span>
       </div>
       <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200 font-semibold">
         <i class="fa-solid fa-calendar-day text-amber-500"></i>
@@ -234,13 +234,11 @@
           <span id="cardPctRecusadas" class="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">0.0%</span>
         </div>
         
-        <!-- Detalhamento Mês Atual e Mês Anterior -->
         <div class="text-[10px] font-semibold flex justify-between items-center text-slate-600">
           <span id="cardRecusadasDetMes" class="text-red-600">Mês: 0</span>
           <span id="cardRecusadasDetAnt" class="text-amber-800 font-bold bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">Mês anterior: 0</span>
         </div>
 
-        <!-- Linha de Dias Restantes (20 - Data Atual) -->
         <div class="mt-1 pt-1 border-t border-red-100 flex justify-between items-center text-[10px]">
           <span class="text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1 text-slate-400"></i>Dias restantes:</span>
           <span id="cardDiasRestantes" class="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">-- dias</span>
@@ -516,6 +514,9 @@
     // URL DA PLANILHA GOOGLE LIVE (CSV)
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vREGkcm_88s0ng1jUWoi2RkqynZa035-X49n9C8wt2wGNq37OkXpvrugFvJrCgbp3MtIGR7kf0StmXP/pub?gid=665330348&single=true&output=csv';
 
+    // ORDEM OFICIAL RIGOROSA DOS DDDS
+    const ORDEM_OFICIAL_DDDS = ['12', '14', '15', '16', '17', '18', '19(CAS)', '19(PAA)'];
+
     const NOMES_MESES = {
       1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
       5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
@@ -534,7 +535,6 @@
     let mesAtualDetectado = null;
     let mesAnteriorDetectado = null;
 
-    // Estado dos filtros múltiplos
     const selecionados = {
       filtroMes: [],
       filtroCoordenacao: [],
@@ -549,7 +549,6 @@
       document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
     }, 1000);
 
-    // Fechar dropdowns ao clicar fora
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.multi-select-container')) {
         document.querySelectorAll('[id^="dropdown-"]').forEach(d => d.classList.add('hidden'));
@@ -605,30 +604,39 @@
       return g !== 'TEL' && g !== '';
     }
 
+    // MAPEAMENTO ROBUSTO DO DDD (CAPTURA 12, 14, 15, 16, 17, 18, 19(CAS), 19(PAA))
     function mapearDDD(row) {
-      const regional = getVal(row, ['Regional', 'Regiao']).toUpperCase();
+      const regional = getVal(row, ['Regional', 'Regiao']).toUpperCase(); // ex: 15-SOC, 12-SJC
       const un = getVal(row, ['Unidade Negócio', 'Unidade Negocio', 'Denominação Unidade Negócio']).toUpperCase();
       const coord = getVal(row, ['Coordenador', 'Coordenacao', 'Coordenação'], 25).toUpperCase();
       const site = getVal(row, ['Site']).toUpperCase();
       
       const textoCompleto = `${regional} ${un} ${coord} ${site}`;
 
-      const match = regional.match(/^(\d{2})/);
-      let ddd = match ? match[1] : '';
+      // 1. Extração direta da regional (ex: "15-SOC" -> "15", "12-SJC" -> "12")
+      const matchRegional = regional.match(/^(\d{2})/);
+      let dddNum = matchRegional ? matchRegional[1] : '';
 
-      if (!ddd) {
+      // 2. Extração caso esteja no texto geral
+      if (!dddNum) {
         const matchGeral = textoCompleto.match(/\b(12|14|15|16|17|18|19)\b/);
-        if (matchGeral) ddd = matchGeral[1];
+        if (matchGeral) dddNum = matchGeral[1];
       }
 
-      if (ddd === '19' || textoCompleto.includes('19') || textoCompleto.includes('CAS') || textoCompleto.includes('PAA')) {
+      // 3. Tratamento para DDD 19 (CAS vs PAA)
+      if (dddNum === '19' || textoCompleto.includes('19') || textoCompleto.includes('CAS') || textoCompleto.includes('PAA') || textoCompleto.includes('CAMPINAS')) {
         if (textoCompleto.includes('PAA') || textoCompleto.includes('PAULINIA') || textoCompleto.includes('AMERICANA')) {
-          return '[PAA] 19';
+          return '19(PAA)';
         }
-        return '[CAS] 19';
+        return '19(CAS)';
       }
 
-      return ddd || '';
+      // Retorna o DDD 12, 14, 15, 16, 17 ou 18 se for válido
+      if (['12', '14', '15', '16', '17', '18'].includes(dddNum)) {
+        return dddNum;
+      }
+
+      return '';
     }
 
     function extrairDiaCorreto(dataStr) {
@@ -657,15 +665,14 @@
 
           let mesAtualPlanilha = null;
 
-          // Filtra linhas válidas E exclui quando Coluna AA ("OS PAI") for "SIM"
+          // Regra OS PAI (Coluna AA / índice 26) = SIM descartada
           baseDados = results.data.filter(r => {
             const hasOS = getVal(r, ['Número OS', 'Numero OS', 'Site']) !== '';
             if (!hasOS) return false;
 
-            // Coluna AA (índice 26 no CSV correspondente a A=0 ... Z=25, AA=26)
             const osPai = getVal(r, ['OS PAI', 'OS_PAI', 'OSPAI'], 26).toUpperCase();
             if (osPai === 'SIM' || osPai.includes('SIM')) {
-              return false; // Retira de todos os cálculos do portal
+              return false;
             }
 
             return true;
@@ -676,7 +683,6 @@
             const tipoSite = getVal(r, ['Denominação do Tipo de Site', 'Denominacao do Tipo de Site', 'Tipo de Site']);
             const subtipoDemanda = obterSubtipoDemanda(tipoSite);
 
-            // Coordenador (Coluna Z / índice 25)
             const coordenador = getVal(r, ['Coordenador', 'Coordenador(a)', 'Coordenação', 'Coordenacao', 'Nome Coordenador'], 25) || getVal(r, ['Regional', 'Região']) || 'Outros';
 
             const dtConc = getVal(r, ['Data/Hora de Conclusão', 'Data de Conclusão', 'Data Conclusao']);
@@ -723,7 +729,6 @@
             };
           });
 
-          // Determinar mês atual e anterior
           if (mesAtualPlanilha) {
             mesAtualDetectado = mesAtualPlanilha;
           } else {
@@ -731,7 +736,6 @@
           }
           mesAnteriorDetectado = mesAtualDetectado === 1 ? 12 : mesAtualDetectado - 1;
 
-          // Marca por padrão o mês atual
           selecionados.filtroMes = [String(mesAtualDetectado)];
 
           inicializarFiltros();
@@ -830,11 +834,14 @@
       const extrairValores = (prop) => [...new Set(baseDados.map(d => d[prop]).filter(Boolean))].sort();
       configurarMultiSelect('filtroCoordenacao', extrairValores('coordenacao'));
 
-      // 3. DDD (Excluindo valores vazios ou SPI)
-      const dddsLista = [...new Set(baseDados.map(d => d.ddd).filter(d => Boolean(d) && d !== 'SPI'))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-      configurarMultiSelect('filtroDDD', dddsLista);
+      // 3. DDD (Ordenados rigorosamente: 12, 14, 15, 16, 17, 18, 19(CAS), 19(PAA))
+      const dddsPresentes = [...new Set(baseDados.map(d => d.ddd).filter(d => Boolean(d) && d !== 'SPI'))];
+      const dddsOrdenados = ORDEM_OFICIAL_DDDS.filter(d => dddsPresentes.includes(d));
+      // Se houver algum outro fora da lista oficial, adiciona ao final
+      dddsPresentes.forEach(d => { if (!dddsOrdenados.includes(d)) dddsOrdenados.push(d); });
+      configurarMultiSelect('filtroDDD', dddsOrdenados);
 
-      // 4. Filtro de Recusadas (Mês Atual, D+20 e Não Recusadas)
+      // 4. Filtro de Recusadas
       const opcoesRecusadas = ['REC_MES', 'REC_D20', 'NAO_REC'];
       const labelMapRecusadas = {
         'REC_MES': 'Recusadas (Mês Atual)',
@@ -878,7 +885,7 @@
 
       dadosFiltrados = baseDados.filter(r => {
         
-        // 1. REGRA TEMPORAL / MÊS COM JANELA D+20 DE RECUSADAS
+        // 1. Mês de Execução com Janela D+20
         if (selecionados.filtroMes.length > 0 && r.mesExec !== null) {
           const pertenceAoMesFiltro = selecionados.filtroMes.includes(String(r.mesExec));
           const ehRecusadaD20 = apenasMesAtualFiltrado && r.isRecusada && (r.mesExec === mesAnteriorDetectado);
@@ -892,7 +899,7 @@
           r.isD20MesAnterior = false;
         }
 
-        // 2. Filtro Coordenação (Coluna Z)
+        // 2. Coordenação (Coluna Z)
         if (selecionados.filtroCoordenacao.length > 0) {
           if (!selecionados.filtroCoordenacao.includes(r.coordenacao)) return false;
         }
@@ -971,15 +978,11 @@
       document.getElementById('cardSobDemanda').innerText = sobDemanda.toLocaleString('pt-BR');
       document.getElementById('cardPctSobDemanda').innerText = `${pctDemanda}%`;
       
-      // Totais e percentual de recusadas
       document.getElementById('cardRecusadas').innerText = totalRecusadas.toLocaleString('pt-BR');
       document.getElementById('cardPctRecusadas').innerText = `${pctRecusada}%`;
       document.getElementById('cardRecusadasDetMes').innerText = `Mês: ${recMesAtual}`;
-      
-      // Mês anterior: X
       document.getElementById('cardRecusadasDetAnt').innerText = `Mês anterior: ${recD20}`;
 
-      // Cálculo de dias restantes: 20 - dia atual
       const hoje = new Date();
       const diaHoje = hoje.getDate();
       const diasRestantes = 20 - diaHoje;
@@ -1002,19 +1005,23 @@
       document.getElementById('cardAtingimento').innerText = `${pctExec}%`;
     }
 
-    // Retorna os DDDs ativos SEM o SPI
+    // RETORNA OS DDDS NA ORDEM EXATA REQUISITADA: 12, 14, 15, 16, 17, 18, 19(CAS), 19(PAA)
     function obterDDDsAtivos() {
-      const listaPadrao = ['[CAS] 19', '[PAA] 19', '12', '14', '16', '17', '18'];
-      
-      const setDDDs = new Set(
+      const presentes = new Set(
         dadosFiltrados
           .map(d => d.ddd)
           .filter(d => Boolean(d) && d !== 'SPI' && d !== 'Outros')
       );
-      
-      if (setDDDs.size === 0) return listaPadrao;
-      
-      return Array.from(setDDDs).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+      // Filtra a ordem oficial trazendo os que existem nos dados filtrados
+      const dddsOrdenados = ORDEM_OFICIAL_DDDS.filter(d => presentes.has(d));
+
+      // Se nenhum dado estiver presente, retorna a grade completa padrão com o 15
+      if (dddsOrdenados.length === 0) {
+        return ORDEM_OFICIAL_DDDS;
+      }
+
+      return dddsOrdenados;
     }
 
     // 1. Barras Empilhadas 100% com Rótulos de Percentagem na Extremidade Interna
@@ -1051,7 +1058,7 @@
         afterDatasetsDraw(chart) {
           const { ctx } = chart;
           ctx.save();
-          ctx.font = 'bold 10.5px Inter, sans-serif';
+          ctx.font = 'bold 10px Inter, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
 
@@ -1063,7 +1070,7 @@
               const valor = dataset.data[index];
               if (valor >= 5) {
                 const x = bar.x;
-                const y = bar.y + 11; // Extremidade interna (inside end)
+                const y = bar.y + 11; // Extremidade interna
 
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
                 ctx.fillText(`${valor}%`, x, y + 0.5);
@@ -1116,7 +1123,7 @@
       });
     }
 
-    // 2. Tabela de Projeção por DDD (Sem o SPI)
+    // 2. Tabela de Projeção por DDD (Na mesma ordem oficial)
     function renderizarTabelaProjecao() {
       const tbody = document.getElementById('tabelaProjecaoCorpo');
       tbody.innerHTML = '';
@@ -1142,7 +1149,7 @@
       const metaAcumuladaDia = 100 * proporcaoMesDecorrido; 
       const metaAcumuladaFormatada = metaAcumuladaDia.toFixed(2).replace('.', ',') + '%';
 
-      dddsAtivos.forEach((ddd, index) => {
+      dddsAtivos.forEach((ddd) => {
         const tot = stats[ddd].total;
         const exe = stats[ddd].exec;
         const rec = stats[ddd].recusadas;
@@ -1174,7 +1181,7 @@
         else if (pctProj < 95) corClasseProj = 'bg-real-roxo';
 
         const tr = document.createElement('tr');
-        if (index === 2) tr.className = 'linha-destaque-top';
+        if (ddd === '19(CAS)') tr.className = 'linha-destaque-top';
 
         tr.innerHTML = `
           <td>${ddd}</td>
