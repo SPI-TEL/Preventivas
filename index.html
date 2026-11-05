@@ -85,11 +85,11 @@
     }
 
     /* Classes de cores do Realizado, Meta e Projeção */
-    .bg-real-verde      { background-color: #86efac; color: #064e3b; } /* >= 80% */
-    .bg-real-amarelo    { background-color: #fde047; color: #713f12; } /* 60% a 79.99% */
-    .bg-real-roxo       { background-color: #d8b4fe; color: #3b0764; } /* Risco moderado Projeção */
-    .bg-real-vermelho   { background-color: #fca5a5; color: #7f1d1d; } /* < 60% */
-    .bg-meta-amarelo-claro { background-color: #fef9c3; color: #854d0e; } /* Amarelo bem clarinho para meta */
+    .bg-real-verde      { background-color: #86efac; color: #064e3b; }
+    .bg-real-amarelo    { background-color: #fde047; color: #713f12; }
+    .bg-real-roxo       { background-color: #d8b4fe; color: #3b0764; }
+    .bg-real-vermelho   { background-color: #fca5a5; color: #7f1d1d; }
+    .bg-meta-amarelo-claro { background-color: #fef9c3; color: #854d0e; }
 
     .table-container {
       max-height: 540px;
@@ -107,7 +107,7 @@
 </head>
 <body class="min-h-screen pb-12">
 
-  <!-- CABEÇALHO PADRÃO NC/COR -->
+  <!-- CABEÇALHO PADRÃO -->
   <header class="bg-[#0f172a] text-white shadow-lg border-b border-slate-800">
     <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center space-x-3">
@@ -141,7 +141,7 @@
 
         <button onclick="exportarCSV()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 transition shadow">
           <i class="fa-solid fa-file-excel"></i>
-          <span>Exportar Base (.xlsx)</span>
+          <span>Exportar Base (.csv)</span>
         </button>
       </div>
     </div>
@@ -154,7 +154,7 @@
       <div class="flex items-center space-x-2 text-xs text-slate-700">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
         <span class="font-bold text-slate-900">Regras Operacionais:</span>
-        <span id="txtStatusConexao">Gestor TEL = Pendente | VIVO/Outros = Executada | Recusadas = Serviço Recusado.</span>
+        <span id="txtStatusConexao">Gestor TEL = Pendente | VIVO/Outros = Executada | Recusadas = Condição Preventiva / Serviço Recusado.</span>
       </div>
       <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200 font-semibold">
         <i class="fa-solid fa-chart-pie text-amber-500"></i>
@@ -246,11 +246,7 @@
 
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
         <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Gerência</label>
-          <select id="filtroGerencia" onchange="aoMudarGerencia()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
-        </div>
-        <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Regional</label>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Regional / Coordenação</label>
           <select id="filtroRegional" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
         </div>
         <div>
@@ -258,8 +254,12 @@
           <select id="filtroDDD" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
         </div>
         <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Tipo de Rede</label>
-          <select id="filtroTipoPlanta" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Tipo de Serviço</label>
+          <select id="filtroTipoServico" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Classe Equipamento</label>
+          <select id="filtroEquipamento" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
         </div>
         <div>
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Modalidade</label>
@@ -273,7 +273,7 @@
         <div>
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Busca Livre</label>
           <div class="relative">
-            <input type="text" id="filtroBusca" oninput="aplicarFiltros()" placeholder="OS, Site, Ação..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 pl-7 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="text" id="filtroBusca" oninput="aplicarFiltros()" placeholder="OS, Site, Equipamento..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 pl-7 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
             <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
           </div>
         </div>
@@ -283,7 +283,7 @@
     <!-- SEÇÃO PRINCIPAL DE GRÁFICOS: DDD (5), PROJEÇÃO ESTICADA (4) E SOB DEMANDA REDUZIDO (3) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       
-      <!-- Gráfico 1: Barras Empilhadas 100% por DDD (5 colunas) -->
+      <!-- Gráfico 1: Barras Empilhadas 100% por DDD -->
       <div class="lg:col-span-5 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center space-x-2">
@@ -297,7 +297,7 @@
         </div>
       </div>
 
-      <!-- Tabela Projeção por DDD (ESTICADA PARA 4 COLUNAS COM META ACUMULADA) -->
+      <!-- Tabela Projeção por DDD -->
       <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-2">
           <div class="flex items-center space-x-2">
@@ -322,7 +322,7 @@
         </div>
       </div>
 
-      <!-- Gráfico 3: Detalhamento Sob Demanda (4 Tipos) (REDUZIDO PARA 3 COLUNAS) -->
+      <!-- Gráfico 3: Detalhamento Sob Demanda -->
       <div class="lg:col-span-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center space-x-2">
@@ -338,7 +338,7 @@
 
     </div>
 
-    <!-- GRÁFICO EVOLUTIVO FUTURISTA -->
+    <!-- GRÁFICO EVOLUTIVO DIARIZADO -->
     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
       <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
         <div class="flex items-center space-x-2">
@@ -375,7 +375,7 @@
               <th class="p-3 font-bold border-b border-slate-200">Site</th>
               <th class="p-3 font-bold border-b border-slate-200">Equipamento / Serviço</th>
               <th class="p-3 font-bold border-b border-slate-200">DDD</th>
-              <th class="p-3 font-bold border-b border-slate-200">Tipo Planta</th>
+              <th class="p-3 font-bold border-b border-slate-200">Tipo de Site</th>
               <th class="p-3 font-bold border-b border-slate-200">Modalidade</th>
               <th class="p-3 font-bold border-b border-slate-200">Gestor</th>
               <th class="p-3 font-bold border-b border-slate-200">Situação</th>
@@ -412,8 +412,9 @@
   </div>
 
   <script>
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5P7-KWKflNkgv3d6LqU-7slIZXbuH1wg0A7daLa6-2yW8fWYLFvUW-iMpMSekZw/pub?gid=2090194119&single=true&output=csv';
-    const SPI_DDDS_EXATO = ['12', '15', '14', '18', '16', '17', '[CAS] 19', '[PAA] 19'];
+    // URL ATUALIZADA DA PLANILHA GOOGLE
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vREGkcm_88s0ng1jUWoi2RkqynZa035-X49n9C8wt2wGNq37OkXpvrugFvJrCgbp3MtIGR7kf0StmXP/pub?gid=665330348&single=true&output=csv';
+    const SPI_DDDS_EXATO = ['12', '14', '15', '16', '17', '18', '[CAS] 19', '[PAA] 19'];
 
     const ITENS_POR_PAGINA = 60;
     let paginaAtual = 1;
@@ -429,6 +430,18 @@
       document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
     }, 1000);
 
+    // Função utilitária para buscar valores ignorando case/acentos nas chaves do objeto
+    function getVal(row, chavesPossiveis) {
+      const keys = Object.keys(row);
+      for (const cp of chavesPossiveis) {
+        const achou = keys.find(k => k.trim().toLowerCase() === cp.trim().toLowerCase());
+        if (achou && row[achou] !== undefined && row[achou] !== null) {
+          return String(row[achou]).trim();
+        }
+      }
+      return '';
+    }
+
     function obterSubtipoDemanda(tipoSite) {
       if (!tipoSite) return null;
       const t = tipoSite.toUpperCase().replace(/\s+|_/g, '');
@@ -439,28 +452,49 @@
       return null;
     }
 
-    function verificarRecusada(estado, descEstado) {
-      const txt = `${estado || ''} ${descEstado || ''}`.toUpperCase();
-      return txt.includes('RECUSAD') || txt.includes('SERVICO RECUSADO') || txt.includes('SERVIÇO RECUSADO');
+    // Regra Recusada: coluna Y (Condição Preventiva), Serviço Recusado ou Estado OS
+    function verificarRecusada(row) {
+      const condPrev = getVal(row, ['Condição Preventiva', 'Condicao Preventiva', 'Condição mês', 'Condicao mes']).toUpperCase();
+      const servRec = getVal(row, ['Serviço Recusado', 'Servico Recusado']).toUpperCase();
+      const estOS = getVal(row, ['Denominação Estado OS', 'Denominacao Estado OS', 'Estado OS']).toUpperCase();
+
+      if (condPrev.includes('RECUSAD') || servRec.includes('NOK') || servRec.includes('RECUSAD') || servRec === 'SIM') {
+        return true;
+      }
+      return estOS.includes('RECUSAD');
     }
 
+    // Regra Pendente/Executada: Gestor TEL = Pendente, VIVO/Outros = Executada
+    function verificarExecucaoPorGestor(gestor) {
+      const g = String(gestor || '').trim().toUpperCase();
+      return g !== 'TEL' && g !== '';
+    }
+
+    // Identificação de DDD compatível com a estrutura de Regional e Sites do SPI
     function mapearDDD(row) {
-      const ddd = String(row.DDD || '').trim();
-      if (ddd === '19') {
-        const coord = String(row.Coordenacao || '').toUpperCase();
-        const un = String(row.Unidade_Negocio || '').toUpperCase();
-        const resp = String(row.Responsável || '').toUpperCase();
-        if (coord.includes('PAA') || un.includes('PAA') || resp.includes('PAA')) {
+      const regional = getVal(row, ['Regional', 'Regiao']).toUpperCase();
+      const un = getVal(row, ['Unidade Negócio', 'Unidade Negocio', 'Denominação Unidade Negócio']).toUpperCase();
+      const site = getVal(row, ['Site']).toUpperCase();
+      
+      const textoCompleto = `${regional} ${un} ${site}`;
+
+      // Extrai DDD estilo 14-BRU ou EM6.SPI
+      const match = regional.match(/^(\d{2})/);
+      let ddd = match ? match[1] : '';
+
+      if (!ddd) {
+        const matchGeral = textoCompleto.match(/\b(12|14|15|16|17|18|19)\b/);
+        if (matchGeral) ddd = matchGeral[1];
+      }
+
+      if (ddd === '19' || textoCompleto.includes('19') || textoCompleto.includes('CAS') || textoCompleto.includes('PAA')) {
+        if (textoCompleto.includes('PAA') || textoCompleto.includes('PAULINIA') || textoCompleto.includes('AMERICANA')) {
           return '[PAA] 19';
         }
         return '[CAS] 19';
       }
-      return ddd;
-    }
 
-    function verificarExecucaoPorGestor(gestor) {
-      const g = String(gestor || '').trim().toUpperCase();
-      return g !== 'TEL' && g !== '';
+      return ddd || 'SPI';
     }
 
     function extrairDiaCorreto(dataStr) {
@@ -487,33 +521,37 @@
         complete: function(results) {
           if (icon) icon.classList.remove('fa-spin');
 
-          baseDados = results.data.map((r, idx) => {
-            const isExec = verificarExecucaoPorGestor(r.Gestor);
-            const isRec = verificarRecusada(r.Estado_OS, r.Denominacao_Estado_OS);
-            const subtipoDemanda = obterSubtipoDemanda(r.Denominacao_Tipo_Site);
+          baseDados = results.data.filter(r => getVal(r, ['Número OS', 'Numero OS', 'Site']) !== '').map((r, idx) => {
+            const gestor = getVal(r, ['Gestor']);
+            const isExec = verificarExecucaoPorGestor(gestor);
+            const isRec = verificarRecusada(r);
+            const tipoSite = getVal(r, ['Denominação do Tipo de Site', 'Denominacao do Tipo de Site', 'Tipo de Site']);
+            const subtipoDemanda = obterSubtipoDemanda(tipoSite);
 
-            let diaRef = extrairDiaCorreto(r.Data_Conclusao) || 
-                         extrairDiaCorreto(r.Data_Ultima_Modificacao) || 
-                         extrairDiaCorreto(r.Data_Hora_Edicao) || 
-                         extrairDiaCorreto(r.Data_Criacao);
+            const dtConc = getVal(r, ['Data/Hora de Conclusão', 'Data de Conclusão', 'Data Conclusao']);
+            const dtMod = getVal(r, ['Data Última Modificação', 'Data Ultima Modificacao']);
+            const dtEdic = getVal(r, ['Data/Hora Edição', 'Data Hora Edicao']);
+            const dtCriacao = getVal(r, ['Data Criação', 'Data Criacao']);
+
+            let diaRef = extrairDiaCorreto(dtConc) || 
+                         extrairDiaCorreto(dtMod) || 
+                         extrairDiaCorreto(dtEdic) || 
+                         extrairDiaCorreto(dtCriacao);
             
             if (!diaRef) {
               diaRef = ((idx * 7 + 3) % 30) + 1;
             }
 
             return {
-              id: r.Numero_OS || `ID-${idx}`,
-              site: r.Site || '',
-              servico: r.Tipo_Servico || r.Denominacao_Classe_Equipamento || '',
-              equipamento: r.Denominacao_Classe_Equipamento || '',
-              gerencia: (r.Gerencia || '').trim(),
-              regional: (r.Coordenacao || '').trim(),
-              gestor: (r.Gestor || '').trim(),
-              responsavel: (r.Responsável || '').trim(),
-              planta: (r.Tipo_Planta || '').trim(),
-              estadoOS: (r.Denominacao_Estado_OS || '').trim(),
-              dtPrevista: r.Data_Prevista || '',
-              tipoSite: r.Denominacao_Tipo_Site || '',
+              id: getVal(r, ['Número OS', 'Numero OS']) || `ID-${idx}`,
+              site: getVal(r, ['Site']),
+              servico: getVal(r, ['Tipo de Serviço', 'Tipo de Servico', 'Denominação OS', 'Denominacao OS']),
+              equipamento: getVal(r, ['Denominação Classe Equipamento', 'Denominacao Classe Equipamento', 'Classe Equipamento']),
+              regional: getVal(r, ['Regional', 'Unidade Negócio', 'Unidade Negocio']),
+              gestor: gestor,
+              tipoSite: tipoSite,
+              estadoOS: getVal(r, ['Denominação Estado OS', 'Denominacao Estado OS', 'Estado OS']),
+              dtPrevista: getVal(r, ['Data Prevista']),
               ddd: mapearDDD(r),
               subtipoDemanda: subtipoDemanda,
               isSobDemanda: subtipoDemanda !== null,
@@ -529,13 +567,14 @@
         error: function(err) {
           if (icon) icon.classList.remove('fa-spin');
           console.error(err);
-          alert('Erro ao carregar a planilha.');
+          alert('Erro ao carregar a planilha online.');
         }
       });
     }
 
     function popularSelect(id, lista, valorPredefinido = '') {
       const select = document.getElementById(id);
+      if (!select) return;
       select.innerHTML = '<option value="">Todos</option>';
       lista.forEach(item => {
         const opt = document.createElement('option');
@@ -549,29 +588,17 @@
     function inicializarFiltros() {
       const extrairValores = (prop) => [...new Set(baseDados.map(d => d[prop]).filter(Boolean))].sort();
 
-      popularSelect('filtroGerencia', extrairValores('gerencia'), 'SPI');
-      atualizarFiltrosCascata();
-    }
-
-    function aoMudarGerencia() {
-      atualizarFiltrosCascata();
-      aplicarFiltros();
-    }
-
-    function atualizarFiltrosCascata() {
-      const gerSelecionada = document.getElementById('filtroGerencia').value;
-      const baseEscopo = gerSelecionada ? baseDados.filter(d => d.gerencia === gerSelecionada) : baseDados;
-
-      const extrairValores = (prop) => [...new Set(baseEscopo.map(d => d[prop]).filter(Boolean))].sort();
-
       popularSelect('filtroRegional', extrairValores('regional'));
       popularSelect('filtroDDD', extrairValores('ddd'));
-      popularSelect('filtroTipoPlanta', extrairValores('planta'));
+      popularSelect('filtroTipoServico', extrairValores('servico'));
+      popularSelect('filtroEquipamento', extrairValores('equipamento'));
     }
 
     function limparFiltros() {
-      document.getElementById('filtroGerencia').value = 'SPI';
-      atualizarFiltrosCascata();
+      document.getElementById('filtroRegional').value = '';
+      document.getElementById('filtroDDD').value = '';
+      document.getElementById('filtroTipoServico').value = '';
+      document.getElementById('filtroEquipamento').value = '';
       document.getElementById('filtroModalidade').value = '';
       document.getElementById('filtroBusca').value = '';
       paginaAtual = 1;
@@ -579,24 +606,24 @@
     }
 
     function aplicarFiltros() {
-      const ger = document.getElementById('filtroGerencia').value;
       const reg = document.getElementById('filtroRegional').value;
       const ddd = document.getElementById('filtroDDD').value;
-      const planta = document.getElementById('filtroTipoPlanta').value;
+      const serv = document.getElementById('filtroTipoServico').value;
+      const equip = document.getElementById('filtroEquipamento').value;
       const modalidade = document.getElementById('filtroModalidade').value;
       const termoBusca = (document.getElementById('filtroBusca').value || '').toLowerCase().trim();
 
       dadosFiltrados = baseDados.filter(r => {
-        if (ger && r.gerencia !== ger) return false;
         if (reg && r.regional !== reg) return false;
         if (ddd && r.ddd !== ddd) return false;
-        if (planta && r.planta !== planta) return false;
+        if (serv && r.servico !== serv) return false;
+        if (equip && r.equipamento !== equip) return false;
         if (modalidade === 'Sob Demanda' && !r.isSobDemanda) return false;
         if (modalidade === 'Programada' && r.isSobDemanda) return false;
         if (modalidade === 'Recusadas' && !r.isRecusada) return false;
 
         if (termoBusca) {
-          const stringLinha = `${r.id} ${r.site} ${r.servico} ${r.equipamento} ${r.estadoOS} ${r.gestor}`.toLowerCase();
+          const stringLinha = `${r.id} ${r.site} ${r.servico} ${r.equipamento} ${r.estadoOS} ${r.gestor} ${r.ddd}`.toLowerCase();
           if (!stringLinha.includes(termoBusca)) return false;
         }
         return true;
@@ -637,15 +664,12 @@
     }
 
     function obterDDDsAtivos() {
-      const ger = document.getElementById('filtroGerencia').value;
-      if (ger === 'SPI') {
-        return SPI_DDDS_EXATO;
-      }
       const setDDDs = new Set(dadosFiltrados.map(d => d.ddd).filter(Boolean));
+      if (setDDDs.size === 0) return SPI_DDDS_EXATO;
       return Array.from(setDDDs).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     }
 
-    // 1. Barras Empilhadas 100% (Pendentes na cor LARANJA #f59e0b)
+    // 1. Barras Empilhadas 100%
     function renderizarGraficos() {
       const dddsAtivos = obterDDDsAtivos();
       const stats = {};
@@ -711,7 +735,7 @@
       });
     }
 
-    // 2. TABELA DE PROJEÇÃO POR DDD (COM A COLUNA META ACUMULADA EM AMARELO BEM CLARINHO)
+    // 2. Tabela de Projeção por DDD
     function renderizarTabelaProjecao() {
       const tbody = document.getElementById('tabelaProjecaoCorpo');
       tbody.innerHTML = '';
@@ -731,7 +755,6 @@
         }
       });
 
-      // Cálculo da meta proporcional acumulada com base no dia do mês
       const hoje = new Date();
       const diaAtual = Math.min(Math.max(hoje.getDate(), 1), 30);
       const proporcaoMesDecorrido = diaAtual / 30;
@@ -745,14 +768,8 @@
         const pend = stats[ddd].pendentes;
         
         const pctReal = tot > 0 ? (exe / tot) * 100 : 0;
-        
-        // Percentual de atingimento relativo à meta acumulada do dia
         const atingimentoFrenteMetaDia = metaAcumuladaDia > 0 ? (pctReal / metaAcumuladaDia) * 100 : pctReal;
 
-        // Regra de cores para o Realizado:
-        // >= 80% da meta acumulada -> Verde
-        // 60% a 79.99% -> Amarelo
-        // < 60% -> Vermelho
         let corClasseReal = 'bg-real-verde';
         if (atingimentoFrenteMetaDia < 60) {
           corClasseReal = 'bg-real-vermelho';
@@ -760,7 +777,6 @@
           corClasseReal = 'bg-real-amarelo';
         }
 
-        // Cálculo calibrado da Projeção Real de Fechamento
         let pctProj = 0;
         if (tot > 0) {
           const tetoMaximo = ((tot - rec) / tot) * 100;
@@ -772,19 +788,16 @@
         const realFormatado = pctReal.toFixed(2).replace('.', ',') + '%';
         const projFormatado = pctProj.toFixed(2).replace('.', ',') + '%';
 
-        // Coloração da Projeção por metas mínimas de entrega
         let corClasseProj = 'bg-real-verde';
         if (pctProj < 85) corClasseProj = 'bg-real-vermelho';
         else if (pctProj < 95) corClasseProj = 'bg-real-roxo';
 
         const tr = document.createElement('tr');
-        if (index === 2) {
-          tr.className = 'linha-destaque-top';
-        }
+        if (index === 2) tr.className = 'linha-destaque-top';
 
         tr.innerHTML = `
           <td>${ddd}</td>
-          <td class="${corClasseReal}" title="Atingimento da meta diária: ${atingimentoFrenteMetaDia.toFixed(1)}%">${realFormatado}</td>
+          <td class="${corClasseReal}" title="Atingimento: ${atingimentoFrenteMetaDia.toFixed(1)}%">${realFormatado}</td>
           <td class="bg-meta-amarelo-claro">${metaAcumuladaFormatada}</td>
           <td class="${corClasseProj}">${projFormatado}</td>
         `;
@@ -792,7 +805,7 @@
       });
     }
 
-    // 3. GRÁFICO SOB DEMANDA (4 TIPOS: K1, K2, L1, L2) COM PENDENTE LARANJA
+    // 3. Gráfico Sob Demanda
     function renderizarGraficoSobDemanda() {
       const tipos = ['Tipo 8 K1', 'Tipo 8 K2', 'Tipo 8 L1', 'Tipo 8 L2'];
       const contagemExec = [0, 0, 0, 0];
@@ -847,10 +860,10 @@
       });
     }
 
-    // 4. GRÁFICO EVOLUTIVO FUTURISTA
+    // 4. Gráfico Evolutivo Diarizado
     function renderizarGraficoFuturista() {
       const diasMes = 31;
-      const labels = Array.from({ length: diasMes }, (_, i) => `${i + 1}/10`);
+      const labels = Array.from({ length: diasMes }, (_, i) => `${i + 1}`);
 
       const totalOS = dadosFiltrados.length;
       const metaPorDia = totalOS / diasMes;
@@ -941,10 +954,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: {
-            mode: 'index',
-            intersect: false
-          },
+          interaction: { mode: 'index', intersect: false },
           scales: {
             x: {
               grid: { color: 'rgba(226, 232, 240, 0.6)' },
@@ -980,7 +990,7 @@
       });
     }
 
-    // 5. TABELA ANALÍTICA COM PAGINAÇÃO DE 60 LINHAS
+    // 5. Tabela Analítica
     function renderizarTabela() {
       const tbody = document.getElementById('tabelaCorpo');
       tbody.innerHTML = '';
@@ -1001,9 +1011,9 @@
         tr.innerHTML = `
           <td class="p-3 font-mono font-semibold text-slate-800">${r.id}</td>
           <td class="p-3 font-medium text-slate-600">${r.site}</td>
-          <td class="p-3">${r.servico || '-'}</td>
+          <td class="p-3">${r.equipamento || r.servico || '-'}</td>
           <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">${r.ddd}</span></td>
-          <td class="p-3">${r.planta}</td>
+          <td class="p-3">${r.tipoSite || '-'}</td>
           <td class="p-3">
             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isSobDemanda ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
               ${r.isSobDemanda ? r.subtipoDemanda : 'Programada'}
@@ -1052,8 +1062,8 @@
 
     function exportarCSV() {
       if (!dadosFiltrados.length) return alert('Sem registros para exportar.');
-      const cabecalhos = ["Numero_OS", "Site", "Servico", "DDD", "Tipo_Planta", "Modalidade", "Gestor", "Situacao", "Data_Prevista"];
-      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.servico}"`, d.ddd, d.planta, d.isSobDemanda ? d.subtipoDemanda : 'Programada', d.gestor, d.isRecusada ? 'Recusada' : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
+      const cabecalhos = ["Numero_OS", "Site", "Servico", "DDD", "Tipo_Site", "Modalidade", "Gestor", "Situacao", "Data_Prevista"];
+      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.servico}"`, d.ddd, `"${d.tipoSite}"`, d.isSobDemanda ? d.subtipoDemanda : 'Programada', d.gestor, d.isRecusada ? 'Recusada' : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
       const conteudo = [cabecalhos.join(';'), ...linhas.map(e => e.join(';'))].join('\n');
       
       const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
