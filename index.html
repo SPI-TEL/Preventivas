@@ -244,7 +244,12 @@
         </button>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
+        <!-- NOVO FILTRO: MÊS (DESCRIÇÃO POR EXTENSO) -->
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Mês de Execução</label>
+          <select id="filtroMes" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-blue-700"></select>
+        </div>
         <div>
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Regional / Coordenação</label>
           <select id="filtroRegional" onchange="aplicarFiltros()" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"></select>
@@ -273,7 +278,7 @@
         <div>
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Busca Livre</label>
           <div class="relative">
-            <input type="text" id="filtroBusca" oninput="aplicarFiltros()" placeholder="OS, Site, Equipamento..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 pl-7 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="text" id="filtroBusca" oninput="aplicarFiltros()" placeholder="OS, Site, Ação..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 pl-7 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
             <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
           </div>
         </div>
@@ -416,6 +421,12 @@
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vREGkcm_88s0ng1jUWoi2RkqynZa035-X49n9C8wt2wGNq37OkXpvrugFvJrCgbp3MtIGR7kf0StmXP/pub?gid=665330348&single=true&output=csv';
     const SPI_DDDS_EXATO = ['12', '14', '15', '16', '17', '18', '[CAS] 19', '[PAA] 19'];
 
+    const NOMES_MESES = {
+      1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
+      5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
+      9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+    };
+
     const ITENS_POR_PAGINA = 60;
     let paginaAtual = 1;
 
@@ -425,12 +436,14 @@
     let chartSobDemanda = null;
     let chartDiarizado = null;
 
+    let mesAtualDetectado = null;
+    let mesAnteriorDetectado = null;
+
     setInterval(() => {
       const now = new Date();
       document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
     }, 1000);
 
-    // Função utilitária para buscar valores ignorando case/acentos nas chaves do objeto
     function getVal(row, chavesPossiveis) {
       const keys = Object.keys(row);
       for (const cp of chavesPossiveis) {
@@ -452,7 +465,6 @@
       return null;
     }
 
-    // Regra Recusada: coluna Y (Condição Preventiva), Serviço Recusado ou Estado OS
     function verificarRecusada(row) {
       const condPrev = getVal(row, ['Condição Preventiva', 'Condicao Preventiva', 'Condição mês', 'Condicao mes']).toUpperCase();
       const servRec = getVal(row, ['Serviço Recusado', 'Servico Recusado']).toUpperCase();
@@ -464,13 +476,11 @@
       return estOS.includes('RECUSAD');
     }
 
-    // Regra Pendente/Executada: Gestor TEL = Pendente, VIVO/Outros = Executada
     function verificarExecucaoPorGestor(gestor) {
       const g = String(gestor || '').trim().toUpperCase();
       return g !== 'TEL' && g !== '';
     }
 
-    // Identificação de DDD compatível com a estrutura de Regional e Sites do SPI
     function mapearDDD(row) {
       const regional = getVal(row, ['Regional', 'Regiao']).toUpperCase();
       const un = getVal(row, ['Unidade Negócio', 'Unidade Negocio', 'Denominação Unidade Negócio']).toUpperCase();
@@ -478,7 +488,6 @@
       
       const textoCompleto = `${regional} ${un} ${site}`;
 
-      // Extrai DDD estilo 14-BRU ou EM6.SPI
       const match = regional.match(/^(\d{2})/);
       let ddd = match ? match[1] : '';
 
@@ -521,6 +530,8 @@
         complete: function(results) {
           if (icon) icon.classList.remove('fa-spin');
 
+          let mesAtualPlanilha = null;
+
           baseDados = results.data.filter(r => getVal(r, ['Número OS', 'Numero OS', 'Site']) !== '').map((r, idx) => {
             const gestor = getVal(r, ['Gestor']);
             const isExec = verificarExecucaoPorGestor(gestor);
@@ -542,6 +553,17 @@
               diaRef = ((idx * 7 + 3) % 30) + 1;
             }
 
+            // Mapeamento do mês de execução (número convertido)
+            const rawMesExec = getVal(r, ['Mês Execução', 'Mes Execucao', 'Mês Execucao']);
+            const numMesExec = parseInt(rawMesExec, 10) || null;
+
+            // Identificação do mês atual indicado na planilha
+            const rawMesAtual = getVal(r, ['Mês atual', 'Mes atual']);
+            const numMesAtual = parseInt(rawMesAtual, 10);
+            if (!mesAtualPlanilha && numMesAtual && numMesAtual >= 1 && numMesAtual <= 12) {
+              mesAtualPlanilha = numMesAtual;
+            }
+
             return {
               id: getVal(r, ['Número OS', 'Numero OS']) || `ID-${idx}`,
               site: getVal(r, ['Site']),
@@ -557,9 +579,18 @@
               isSobDemanda: subtipoDemanda !== null,
               isExec: isExec,
               isRecusada: isRec,
-              diaRef: diaRef
+              diaRef: diaRef,
+              mesExec: numMesExec
             };
           });
+
+          // Determinar mês atual e anterior
+          if (mesAtualPlanilha) {
+            mesAtualDetectado = mesAtualPlanilha;
+          } else {
+            mesAtualDetectado = new Date().getMonth() + 1;
+          }
+          mesAnteriorDetectado = mesAtualDetectado === 1 ? 12 : mesAtualDetectado - 1;
 
           inicializarFiltros();
           aplicarFiltros();
@@ -586,6 +617,41 @@
     }
 
     function inicializarFiltros() {
+      // Popular Select de Mês (com Mês Atual e Mês Anterior no topo)
+      const selectMes = document.getElementById('filtroMes');
+      selectMes.innerHTML = '';
+
+      const mesesPresentes = [...new Set(baseDados.map(d => d.mesExec).filter(Boolean))].sort((a, b) => b - a);
+
+      // Opção Mês Atual
+      const optAtual = document.createElement('option');
+      optAtual.value = String(mesAtualDetectado);
+      optAtual.textContent = `${NOMES_MESES[mesAtualDetectado] || 'Mês ' + mesAtualDetectado} (Atual)`;
+      optAtual.selected = true;
+      selectMes.appendChild(optAtual);
+
+      // Opção Mês Anterior
+      const optAnterior = document.createElement('option');
+      optAnterior.value = String(mesAnteriorDetectado);
+      optAnterior.textContent = `${NOMES_MESES[mesAnteriorDetectado] || 'Mês ' + mesAnteriorDetectado} (Anterior)`;
+      selectMes.appendChild(optAnterior);
+
+      // Outros meses se existirem na base
+      mesesPresentes.forEach(m => {
+        if (m !== mesAtualDetectado && m !== mesAnteriorDetectado) {
+          const opt = document.createElement('option');
+          opt.value = String(m);
+          opt.textContent = NOMES_MESES[m] || `Mês ${m}`;
+          selectMes.appendChild(opt);
+        }
+      });
+
+      // Opção para ver todos os meses
+      const optTodos = document.createElement('option');
+      optTodos.value = '';
+      optTodos.textContent = 'Todos os Meses';
+      selectMes.appendChild(optTodos);
+
       const extrairValores = (prop) => [...new Set(baseDados.map(d => d[prop]).filter(Boolean))].sort();
 
       popularSelect('filtroRegional', extrairValores('regional'));
@@ -595,6 +661,8 @@
     }
 
     function limparFiltros() {
+      // Ao limpar filtros, mantém o padrão do Mês Atual selecionado
+      document.getElementById('filtroMes').value = String(mesAtualDetectado);
       document.getElementById('filtroRegional').value = '';
       document.getElementById('filtroDDD').value = '';
       document.getElementById('filtroTipoServico').value = '';
@@ -606,6 +674,7 @@
     }
 
     function aplicarFiltros() {
+      const mesSel = document.getElementById('filtroMes').value;
       const reg = document.getElementById('filtroRegional').value;
       const ddd = document.getElementById('filtroDDD').value;
       const serv = document.getElementById('filtroTipoServico').value;
@@ -614,6 +683,7 @@
       const termoBusca = (document.getElementById('filtroBusca').value || '').toLowerCase().trim();
 
       dadosFiltrados = baseDados.filter(r => {
+        if (mesSel && r.mesExec !== null && String(r.mesExec) !== mesSel) return false;
         if (reg && r.regional !== reg) return false;
         if (ddd && r.ddd !== ddd) return false;
         if (serv && r.servico !== serv) return false;
