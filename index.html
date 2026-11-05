@@ -84,7 +84,7 @@
       border-top: 1.5px dotted #64748b;
     }
 
-    /* Classes de cores do Realizado, Meta e Projeção */
+    /* Cores das Metas e Desempenho */
     .bg-real-verde      { background-color: #86efac; color: #064e3b; }
     .bg-real-amarelo    { background-color: #fde047; color: #713f12; }
     .bg-real-roxo       { background-color: #d8b4fe; color: #3b0764; }
@@ -104,7 +104,7 @@
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     }
 
-    /* Custom Dropdown Multi-Select */
+    /* Dropdown Multi-Select */
     .dropdown-menu-custom {
       max-height: 250px;
       overflow-y: auto;
@@ -168,11 +168,11 @@
       <div class="flex items-center space-x-2 text-xs text-slate-700">
         <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
         <span class="font-bold text-slate-900">Regra de Recusadas (D+20):</span>
-        <span id="txtStatusConexao">Recusadas do mês atual e anterior são mantidas no estoque para saneamento até o dia 20 do mês subsequente.</span>
+        <span id="txtStatusConexao">Recusadas do mês atual e anterior permanecem na carteira ativa até dia 20 do mês subsequente para saneamento.</span>
       </div>
       <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200 font-semibold">
         <i class="fa-solid fa-calendar-day text-amber-500"></i>
-        <span>Prazo de Expiração: Dia 20 do Mês Subsequente</span>
+        <span>Prazo Máximo de Correção: Dia 20 do Mês Subsequente</span>
       </div>
     </div>
 
@@ -223,7 +223,7 @@
         <p class="text-[10px] text-slate-400 font-medium">K1, K2, L1 e L2</p>
       </div>
 
-      <!-- CARD RECUSADAS COM DETALHE DO MÊS ANTERIOR (D+20) -->
+      <!-- CARD RECUSADAS COM MÊS ANTERIOR E CONTAGEM REGRESSIVA (20 - DATA ATUAL) -->
       <div class="card-kpi kpi-recusadas p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-[11px] font-black uppercase tracking-wider text-red-600">Total Recusadas</span>
@@ -233,9 +233,17 @@
           <span id="cardRecusadas" class="text-2xl font-black text-red-600">0</span>
           <span id="cardPctRecusadas" class="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">0.0%</span>
         </div>
-        <div class="text-[9.5px] text-red-600 font-semibold flex justify-between">
-          <span id="cardRecusadasDetMes">Mês: 0</span>
-          <span id="cardRecusadasDetAnt" class="text-amber-700 font-bold bg-amber-100 px-1 rounded">D+20: 0</span>
+        
+        <!-- Detalhamento Mês Atual e Mês Anterior -->
+        <div class="text-[10px] font-semibold flex justify-between items-center text-slate-600">
+          <span id="cardRecusadasDetMes" class="text-red-600">Mês: 0</span>
+          <span id="cardRecusadasDetAnt" class="text-amber-800 font-bold bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">Mês anterior: 0</span>
+        </div>
+
+        <!-- Linha de Dias Restantes (20 - Data Atual) -->
+        <div class="mt-1 pt-1 border-t border-red-100 flex justify-between items-center text-[10px]">
+          <span class="text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1 text-slate-400"></i>Dias restantes:</span>
+          <span id="cardDiasRestantes" class="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">-- dias</span>
         </div>
       </div>
 
@@ -249,7 +257,7 @@
       </div>
     </div>
 
-    <!-- FILTROS DE PESQUISA (COM SUPORTE A MÚLTIPLA ESCOLHA) -->
+    <!-- FILTROS DE PESQUISA (MULTI-SELEÇÃO) -->
     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative z-30">
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-2 text-slate-800 text-xs font-bold uppercase tracking-wider">
@@ -375,7 +383,7 @@
     <!-- SEÇÃO PRINCIPAL DE GRÁFICOS: DDD (5), PROJEÇÃO ESTICADA (4) E SOB DEMANDA REDUZIDO (3) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       
-      <!-- Gráfico 1: Barras Empilhadas 100% por DDD -->
+      <!-- Gráfico 1: Barras Empilhadas 100% por DDD com Rótulos Internos -->
       <div class="lg:col-span-5 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center space-x-2">
@@ -505,7 +513,7 @@
   </div>
 
   <script>
-    // URL DA PLANILHA GOOGLE
+    // URL DA PLANILHA GOOGLE LIVE (CSV)
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vREGkcm_88s0ng1jUWoi2RkqynZa035-X49n9C8wt2wGNq37OkXpvrugFvJrCgbp3MtIGR7kf0StmXP/pub?gid=665330348&single=true&output=csv';
     const SPI_DDDS_EXATO = ['12', '14', '15', '16', '17', '18', '[CAS] 19', '[PAA] 19'];
 
@@ -657,7 +665,7 @@
             const tipoSite = getVal(r, ['Denominação do Tipo de Site', 'Denominacao do Tipo de Site', 'Tipo de Site']);
             const subtipoDemanda = obterSubtipoDemanda(tipoSite);
 
-            // Coordenador (Coluna Z)
+            // Coordenador (Coluna Z / índice 25)
             const coordenador = getVal(r, ['Coordenador', 'Coordenador(a)', 'Coordenação', 'Coordenacao', 'Nome Coordenador'], 25) || getVal(r, ['Regional', 'Região']) || 'Outros';
 
             const dtConc = getVal(r, ['Data/Hora de Conclusão', 'Data de Conclusão', 'Data Conclusao']);
@@ -843,10 +851,6 @@
 
     function aplicarFiltros() {
       const termoBusca = (document.getElementById('filtroBusca').value || '').toLowerCase().trim();
-
-      // REGRA DE OURO OPERACIONAL:
-      // Se estamos filtrando pelo mês atual (ou um mês específico),
-      // as preventivas RECUSADAS do mês anterior DEVEM ser incluídas (janela de 20 dias para saneamento).
       const apenasMesAtualFiltrado = selecionados.filtroMes.length === 1 && selecionados.filtroMes.includes(String(mesAtualDetectado));
 
       dadosFiltrados = baseDados.filter(r => {
@@ -854,15 +858,12 @@
         // 1. REGRA TEMPORAL / MÊS COM JANELA D+20 DE RECUSADAS
         if (selecionados.filtroMes.length > 0 && r.mesExec !== null) {
           const pertenceAoMesFiltro = selecionados.filtroMes.includes(String(r.mesExec));
-          
-          // Se for uma recusada do mês anterior e estamos no mês atual, permite passar (D+20)
           const ehRecusadaD20 = apenasMesAtualFiltrado && r.isRecusada && (r.mesExec === mesAnteriorDetectado);
 
           if (!pertenceAoMesFiltro && !ehRecusadaD20) {
             return false;
           }
 
-          // Sinaliza se é um item que veio de D+20 para uso visual
           r.isD20MesAnterior = ehRecusadaD20;
         } else {
           r.isD20MesAnterior = false;
@@ -941,10 +942,33 @@
       document.getElementById('cardSobDemanda').innerText = sobDemanda.toLocaleString('pt-BR');
       document.getElementById('cardPctSobDemanda').innerText = `${pctDemanda}%`;
       
+      // Totais e percentual de recusadas
       document.getElementById('cardRecusadas').innerText = totalRecusadas.toLocaleString('pt-BR');
       document.getElementById('cardPctRecusadas').innerText = `${pctRecusada}%`;
       document.getElementById('cardRecusadasDetMes').innerText = `Mês: ${recMesAtual}`;
-      document.getElementById('cardRecusadasDetAnt').innerText = `D+20 (M-1): ${recD20}`;
+      
+      // Mês anterior: X
+      document.getElementById('cardRecusadasDetAnt').innerText = `Mês anterior: ${recD20}`;
+
+      // Cálculo de dias restantes: 20 - dia atual
+      const hoje = new Date();
+      const diaHoje = hoje.getDate();
+      const diasRestantes = 20 - diaHoje;
+      const elDias = document.getElementById('cardDiasRestantes');
+
+      if (diasRestantes > 5) {
+        elDias.innerText = `${diasRestantes} dias`;
+        elDias.className = 'font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200';
+      } else if (diasRestantes > 0) {
+        elDias.innerText = `${diasRestantes} dia${diasRestantes > 1 ? 's' : ''}`;
+        elDias.className = 'font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300 animate-pulse';
+      } else if (diasRestantes === 0) {
+        elDias.innerText = `Hoje (Último dia!)`;
+        elDias.className = 'font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded border border-red-300 animate-pulse';
+      } else {
+        elDias.innerText = `Expirado (${Math.abs(diasRestantes)}d)`;
+        elDias.className = 'font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-200';
+      }
 
       document.getElementById('cardAtingimento').innerText = `${pctExec}%`;
     }
@@ -955,7 +979,7 @@
       return Array.from(setDDDs).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     }
 
-    // 1. Barras Empilhadas 100%
+    // 1. Barras Empilhadas 100% com Rótulos de Percentagem na Extremidade Interna
     function renderizarGraficos() {
       const dddsAtivos = obterDDDsAtivos();
       const stats = {};
@@ -984,6 +1008,40 @@
         }
       });
 
+      // Plugin personalizado para desenhar rótulos na extremidade interna de cada barra
+      const pluginRotulosInternos = {
+        id: 'rotulosExtremidadeInterna',
+        afterDatasetsDraw(chart) {
+          const { ctx } = chart;
+          ctx.save();
+          ctx.font = 'bold 10.5px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+
+          chart.data.datasets.forEach((dataset, datasetIndex) => {
+            const meta = chart.getDatasetMeta(datasetIndex);
+            if (meta.hidden) return;
+
+            meta.data.forEach((bar, index) => {
+              const valor = dataset.data[index];
+              if (valor >= 5) {
+                const x = bar.x;
+                const y = bar.y + 11; // Extremidade interna (inside end)
+
+                // Sombra suave para contraste
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.fillText(`${valor}%`, x, y + 0.5);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(`${valor}%`, x, y);
+              }
+            });
+          });
+
+          ctx.restore();
+        }
+      };
+
       if (chartStacked) chartStacked.destroy();
       const ctxStacked = document.getElementById('chartStackedDDD').getContext('2d');
       chartStacked = new Chart(ctxStacked, {
@@ -995,16 +1053,17 @@
               label: 'Executadas (%)',
               data: pctsExec,
               backgroundColor: '#10b981',
-              borderRadius: 4
+              borderRadius: 3
             },
             {
-              label: 'Pendentes / Recusadas (%)',
+              label: 'Pendentes (TEL) %',
               data: pctsPend,
               backgroundColor: '#f59e0b',
-              borderRadius: 4
+              borderRadius: 3
             }
           ]
         },
+        plugins: [pluginRotulosInternos],
         options: {
           responsive: true,
           maintainAspectRatio: false,
@@ -1065,7 +1124,6 @@
 
         let pctProj = 0;
         if (tot > 0) {
-          // As recusadas diminuem o teto máximo até que sejam tratadas na janela D+20
           const tetoMaximo = ((tot - rec) / tot) * 100;
           const potencialRecuperacao = (pend / tot) * 100 * 0.88;
           pctProj = Math.min(tetoMaximo, pctReal + potencialRecuperacao);
@@ -1296,7 +1354,6 @@
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-50 transition border-b border-slate-100 ${r.isRecusada ? (r.isD20MesAnterior ? 'bg-amber-50/50' : 'bg-red-50/40') : ''}`;
         
-        // Etiqueta de Situação
         let situacaoBadge = '';
         if (r.isRecusada) {
           if (r.isD20MesAnterior) {
