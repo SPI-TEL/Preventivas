@@ -167,8 +167,8 @@
     <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-wrap justify-between items-center gap-2 border-l-4 border-l-red-500">
       <div class="flex items-center space-x-2 text-xs text-slate-700">
         <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-        <span class="font-bold text-slate-900">Regra de Recusadas (D+20):</span>
-        <span id="txtStatusConexao">Recusadas do mês atual e anterior permanecem na carteira ativa até dia 20 do mês subsequente para saneamento.</span>
+        <span class="font-bold text-slate-900">Regras de Filtro:</span>
+        <span id="txtStatusConexao">OS Pai = "SIM" é desconsiderada de todos os cálculos | Recusadas D+20 mantidas até o dia 20 do mês subsequente.</span>
       </div>
       <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200 font-semibold">
         <i class="fa-solid fa-calendar-day text-amber-500"></i>
@@ -657,7 +657,19 @@
 
           let mesAtualPlanilha = null;
 
-          baseDados = results.data.filter(r => getVal(r, ['Número OS', 'Numero OS', 'Site']) !== '').map((r, idx) => {
+          // Filtra linhas válidas E exclui quando Coluna AA ("OS PAI") for "SIM"
+          baseDados = results.data.filter(r => {
+            const hasOS = getVal(r, ['Número OS', 'Numero OS', 'Site']) !== '';
+            if (!hasOS) return false;
+
+            // Coluna AA (índice 26 no CSV correspondente a A=0 ... Z=25, AA=26)
+            const osPai = getVal(r, ['OS PAI', 'OS_PAI', 'OSPAI'], 26).toUpperCase();
+            if (osPai === 'SIM' || osPai.includes('SIM')) {
+              return false; // Retira de todos os cálculos do portal
+            }
+
+            return true;
+          }).map((r, idx) => {
             const gestor = getVal(r, ['Gestor']);
             const isExec = verificarExecucaoPorGestor(gestor);
             const isRec = verificarRecusada(r);
