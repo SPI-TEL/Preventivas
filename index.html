@@ -133,7 +133,7 @@
             <h1 class="text-lg font-black tracking-wider uppercase">Controle de Preventivas</h1>
             <span class="bg-teal-900/80 text-teal-300 text-[11px] font-semibold px-2 py-0.5 rounded-full border border-teal-500/30">Google Sheets Live &bull; SPI</span>
           </div>
-          <p class="text-xs text-slate-400">Contrato Vivo / TEL &bull; Acompanhamento Operacional, Projeções e Eficiência</p>
+          <p class="text-xs text-slate-400">Contrato Vivo / TEL &bull; Acompanhamento Operacional, Projeções e Janela D+20 de Recusadas</p>
         </div>
       </div>
 
@@ -164,15 +164,15 @@
   <div class="max-w-[1600px] mx-auto px-4 mt-4 space-y-4">
 
     <!-- BARRA DE STATUS -->
-    <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-wrap justify-between items-center gap-2 border-l-4 border-l-emerald-500">
+    <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-wrap justify-between items-center gap-2 border-l-4 border-l-red-500">
       <div class="flex items-center space-x-2 text-xs text-slate-700">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="font-bold text-slate-900">Regras Operacionais:</span>
-        <span id="txtStatusConexao">Gestor TEL = Pendente | VIVO/Outros = Executada | Recusadas = Condição Preventiva / Serviço Recusado.</span>
+        <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+        <span class="font-bold text-slate-900">Regra de Recusadas (D+20):</span>
+        <span id="txtStatusConexao">Recusadas do mês atual e anterior são mantidas no estoque para saneamento até o dia 20 do mês subsequente.</span>
       </div>
       <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200 font-semibold">
-        <i class="fa-solid fa-chart-pie text-amber-500"></i>
-        <span>Meta Acumulada Proporcional do Mês e Projeção Calibrada por DDD</span>
+        <i class="fa-solid fa-calendar-day text-amber-500"></i>
+        <span>Prazo de Expiração: Dia 20 do Mês Subsequente</span>
       </div>
     </div>
 
@@ -180,11 +180,11 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       <div class="card-kpi kpi-blue p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Programadas</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Carteira</span>
           <i class="fa-solid fa-list-check text-sky-500 text-sm"></i>
         </div>
         <div class="my-2"><span id="cardTotalOS" class="text-2xl font-black text-slate-800">0</span></div>
-        <p class="text-[10px] text-slate-400 font-medium">Ordens apuradas</p>
+        <p class="text-[10px] text-slate-400 font-medium">Programadas + Rec. D+20</p>
       </div>
 
       <div class="card-kpi kpi-emerald p-3.5 flex flex-col justify-between">
@@ -223,16 +223,20 @@
         <p class="text-[10px] text-slate-400 font-medium">K1, K2, L1 e L2</p>
       </div>
 
+      <!-- CARD RECUSADAS COM DETALHE DO MÊS ANTERIOR (D+20) -->
       <div class="card-kpi kpi-recusadas p-3.5 flex flex-col justify-between">
         <div class="flex justify-between items-start">
-          <span class="text-[11px] font-black uppercase tracking-wider text-red-600">Recusadas</span>
+          <span class="text-[11px] font-black uppercase tracking-wider text-red-600">Total Recusadas</span>
           <i class="fa-solid fa-ban text-red-500 text-sm"></i>
         </div>
-        <div class="my-2 flex items-baseline space-x-2">
+        <div class="my-1.5 flex items-baseline space-x-2">
           <span id="cardRecusadas" class="text-2xl font-black text-red-600">0</span>
           <span id="cardPctRecusadas" class="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">0.0%</span>
         </div>
-        <p class="text-[10px] text-red-500 font-bold uppercase tracking-tight">Serviço Recusado</p>
+        <div class="text-[9.5px] text-red-600 font-semibold flex justify-between">
+          <span id="cardRecusadasDetMes">Mês: 0</span>
+          <span id="cardRecusadasDetAnt" class="text-amber-700 font-bold bg-amber-100 px-1 rounded">D+20: 0</span>
+        </div>
       </div>
 
       <div class="card-kpi kpi-cyan p-3.5 flex flex-col justify-between">
@@ -378,7 +382,7 @@
             <i class="fa-solid fa-chart-column text-teal-600"></i>
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Preventivas por DDD (Empilhado 100%)</h3>
           </div>
-          <span class="text-[10px] text-slate-400 uppercase font-semibold">Executadas vs Pendentes</span>
+          <span class="text-[10px] text-slate-400 uppercase font-semibold">Executadas vs Pendentes/Rec.</span>
         </div>
         <div class="relative h-64">
           <canvas id="chartStackedDDD"></canvas>
@@ -523,7 +527,7 @@
     let mesAtualDetectado = null;
     let mesAnteriorDetectado = null;
 
-    // Gerenciador de estado para filtros de múltipla escolha
+    // Estado dos filtros múltiplos
     const selecionados = {
       filtroMes: [],
       filtroCoordenacao: [],
@@ -538,7 +542,7 @@
       document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
     }, 1000);
 
-    // Fecha dropdowns ao clicar fora
+    // Fechar dropdowns ao clicar fora
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.multi-select-container')) {
         document.querySelectorAll('[id^="dropdown-"]').forEach(d => d.classList.add('hidden'));
@@ -552,7 +556,6 @@
       if (estavaOculto) drop.classList.remove('hidden');
     }
 
-    // Busca valor flexível ignorando case ou busca por índice de coluna (ex: Coluna Z = índice 25)
     function getVal(row, chavesPossiveis, colIndex = -1) {
       const keys = Object.keys(row);
       for (const cp of chavesPossiveis) {
@@ -654,7 +657,7 @@
             const tipoSite = getVal(r, ['Denominação do Tipo de Site', 'Denominacao do Tipo de Site', 'Tipo de Site']);
             const subtipoDemanda = obterSubtipoDemanda(tipoSite);
 
-            // COLUNA Z: Coordenador / Coordenação (índice 25 no CSV padrão A-Z)
+            // Coordenador (Coluna Z)
             const coordenador = getVal(r, ['Coordenador', 'Coordenador(a)', 'Coordenação', 'Coordenacao', 'Nome Coordenador'], 25) || getVal(r, ['Regional', 'Região']) || 'Outros';
 
             const dtConc = getVal(r, ['Data/Hora de Conclusão', 'Data de Conclusão', 'Data Conclusao']);
@@ -709,7 +712,7 @@
           }
           mesAnteriorDetectado = mesAtualDetectado === 1 ? 12 : mesAtualDetectado - 1;
 
-          // Define por padrão a seleção no mês atual
+          // Marca por padrão o mês atual
           selecionados.filtroMes = [String(mesAtualDetectado)];
 
           inicializarFiltros();
@@ -723,7 +726,6 @@
       });
     }
 
-    // Configuração dos Dropdowns Multi-Select
     function configurarMultiSelect(id, itens, itemLabelMap = null) {
       const container = document.getElementById(`opcoes-${id}`);
       container.innerHTML = '';
@@ -800,7 +802,7 @@
       });
       configurarMultiSelect('filtroMes', mesesPresentes, labelMapMes);
 
-      // 2. Coordenação / Coordenadores (Coluna Z)
+      // 2. Coordenação (Coluna Z)
       const extrairValores = (prop) => [...new Set(baseDados.map(d => d[prop]).filter(Boolean))].sort();
       configurarMultiSelect('filtroCoordenacao', extrairValores('coordenacao'));
 
@@ -818,7 +820,6 @@
     }
 
     function limparFiltros() {
-      // Retorna ao mês atual como padrão e limpa os outros
       selecionados.filtroMes = [String(mesAtualDetectado)];
       selecionados.filtroCoordenacao = [];
       selecionados.filtroDDD = [];
@@ -843,33 +844,51 @@
     function aplicarFiltros() {
       const termoBusca = (document.getElementById('filtroBusca').value || '').toLowerCase().trim();
 
+      // REGRA DE OURO OPERACIONAL:
+      // Se estamos filtrando pelo mês atual (ou um mês específico),
+      // as preventivas RECUSADAS do mês anterior DEVEM ser incluídas (janela de 20 dias para saneamento).
+      const apenasMesAtualFiltrado = selecionados.filtroMes.length === 1 && selecionados.filtroMes.includes(String(mesAtualDetectado));
+
       dadosFiltrados = baseDados.filter(r => {
-        // Filtro Mês
+        
+        // 1. REGRA TEMPORAL / MÊS COM JANELA D+20 DE RECUSADAS
         if (selecionados.filtroMes.length > 0 && r.mesExec !== null) {
-          if (!selecionados.filtroMes.includes(String(r.mesExec))) return false;
+          const pertenceAoMesFiltro = selecionados.filtroMes.includes(String(r.mesExec));
+          
+          // Se for uma recusada do mês anterior e estamos no mês atual, permite passar (D+20)
+          const ehRecusadaD20 = apenasMesAtualFiltrado && r.isRecusada && (r.mesExec === mesAnteriorDetectado);
+
+          if (!pertenceAoMesFiltro && !ehRecusadaD20) {
+            return false;
+          }
+
+          // Sinaliza se é um item que veio de D+20 para uso visual
+          r.isD20MesAnterior = ehRecusadaD20;
+        } else {
+          r.isD20MesAnterior = false;
         }
 
-        // Filtro Coordenação (Coluna Z)
+        // 2. Filtro Coordenação (Coluna Z)
         if (selecionados.filtroCoordenacao.length > 0) {
           if (!selecionados.filtroCoordenacao.includes(r.coordenacao)) return false;
         }
 
-        // Filtro DDD
+        // 3. Filtro DDD
         if (selecionados.filtroDDD.length > 0) {
           if (!selecionados.filtroDDD.includes(r.ddd)) return false;
         }
 
-        // Filtro Tipo Serviço
+        // 4. Filtro Tipo Serviço
         if (selecionados.filtroTipoServico.length > 0) {
           if (!selecionados.filtroTipoServico.includes(r.servico)) return false;
         }
 
-        // Filtro Equipamento
+        // 5. Filtro Equipamento
         if (selecionados.filtroEquipamento.length > 0) {
           if (!selecionados.filtroEquipamento.includes(r.equipamento)) return false;
         }
 
-        // Filtro Modalidade (múltipla escolha)
+        // 6. Filtro Modalidade
         if (selecionados.filtroModalidade.length > 0) {
           const pass = selecionados.filtroModalidade.some(mod => {
             if (mod === 'Sob Demanda') return r.isSobDemanda;
@@ -880,7 +899,7 @@
           if (!pass) return false;
         }
 
-        // Busca Livre
+        // 7. Busca Livre
         if (termoBusca) {
           const stringLinha = `${r.id} ${r.site} ${r.coordenacao} ${r.servico} ${r.equipamento} ${r.estadoOS} ${r.gestor} ${r.ddd}`.toLowerCase();
           if (!stringLinha.includes(termoBusca)) return false;
@@ -903,12 +922,16 @@
       const executadas = dadosFiltrados.filter(d => d.isExec).length;
       const pendentes = total - executadas;
       const sobDemanda = dadosFiltrados.filter(d => d.isSobDemanda).length;
-      const recusadas = dadosFiltrados.filter(d => d.isRecusada).length;
+      
+      const recusadas = dadosFiltrados.filter(d => d.isRecusada);
+      const totalRecusadas = recusadas.length;
+      const recD20 = recusadas.filter(d => d.isD20MesAnterior).length;
+      const recMesAtual = totalRecusadas - recD20;
 
       const pctExec = total > 0 ? ((executadas / total) * 100).toFixed(1) : '0.0';
       const pctPend = total > 0 ? ((pendentes / total) * 100).toFixed(1) : '0.0';
       const pctDemanda = total > 0 ? ((sobDemanda / total) * 100).toFixed(0) : '0';
-      const pctRecusada = total > 0 ? ((recusadas / total) * 100).toFixed(1) : '0.0';
+      const pctRecusada = total > 0 ? ((totalRecusadas / total) * 100).toFixed(1) : '0.0';
 
       document.getElementById('cardTotalOS').innerText = total.toLocaleString('pt-BR');
       document.getElementById('cardExecutadas').innerText = executadas.toLocaleString('pt-BR');
@@ -918,8 +941,11 @@
       document.getElementById('cardSobDemanda').innerText = sobDemanda.toLocaleString('pt-BR');
       document.getElementById('cardPctSobDemanda').innerText = `${pctDemanda}%`;
       
-      document.getElementById('cardRecusadas').innerText = recusadas.toLocaleString('pt-BR');
+      document.getElementById('cardRecusadas').innerText = totalRecusadas.toLocaleString('pt-BR');
       document.getElementById('cardPctRecusadas').innerText = `${pctRecusada}%`;
+      document.getElementById('cardRecusadasDetMes').innerText = `Mês: ${recMesAtual}`;
+      document.getElementById('cardRecusadasDetAnt').innerText = `D+20 (M-1): ${recD20}`;
+
       document.getElementById('cardAtingimento').innerText = `${pctExec}%`;
     }
 
@@ -972,7 +998,7 @@
               borderRadius: 4
             },
             {
-              label: 'Pendentes (TEL) %',
+              label: 'Pendentes / Recusadas (%)',
               data: pctsPend,
               backgroundColor: '#f59e0b',
               borderRadius: 4
@@ -995,7 +1021,7 @@
       });
     }
 
-    // 2. Tabela de Projeção por DDD
+    // 2. Tabela de Projeção por DDD (Ajustada com estoque de recusadas D+20)
     function renderizarTabelaProjecao() {
       const tbody = document.getElementById('tabelaProjecaoCorpo');
       tbody.innerHTML = '';
@@ -1039,6 +1065,7 @@
 
         let pctProj = 0;
         if (tot > 0) {
+          // As recusadas diminuem o teto máximo até que sejam tratadas na janela D+20
           const tetoMaximo = ((tot - rec) / tot) * 100;
           const potencialRecuperacao = (pend / tot) * 100 * 0.88;
           pctProj = Math.min(tetoMaximo, pctReal + potencialRecuperacao);
@@ -1267,7 +1294,22 @@
 
       registrosPagina.forEach(r => {
         const tr = document.createElement('tr');
-        tr.className = `hover:bg-slate-50 transition border-b border-slate-100 ${r.isRecusada ? 'bg-red-50/40' : ''}`;
+        tr.className = `hover:bg-slate-50 transition border-b border-slate-100 ${r.isRecusada ? (r.isD20MesAnterior ? 'bg-amber-50/50' : 'bg-red-50/40') : ''}`;
+        
+        // Etiqueta de Situação
+        let situacaoBadge = '';
+        if (r.isRecusada) {
+          if (r.isD20MesAnterior) {
+            situacaoBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300" title="Prazo de correção: até dia 20 do mês subsequente"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Recusada (D+20 M-1)</span>`;
+          } else {
+            situacaoBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">Recusada</span>`;
+          }
+        } else if (r.isExec) {
+          situacaoBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">Executada</span>`;
+        } else {
+          situacaoBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Pendente (TEL)</span>`;
+        }
+
         tr.innerHTML = `
           <td class="p-3 font-mono font-semibold text-slate-800">${r.id}</td>
           <td class="p-3 font-medium text-slate-600">${r.site}</td>
@@ -1281,11 +1323,7 @@
             </span>
           </td>
           <td class="p-3 font-bold ${r.gestor === 'TEL' ? 'text-amber-600' : 'text-emerald-600'}">${r.gestor || '-'}</td>
-          <td class="p-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isRecusada ? 'bg-red-100 text-red-700 border border-red-200' : (r.isExec ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700')}">
-              ${r.isRecusada ? 'Recusada' : (r.isExec ? 'Executada' : 'Pendente (TEL)')}
-            </span>
-          </td>
+          <td class="p-3">${situacaoBadge}</td>
           <td class="p-3 text-slate-500">${r.dtPrevista || '-'}</td>
         `;
         tbody.appendChild(tr);
@@ -1324,7 +1362,7 @@
     function exportarCSV() {
       if (!dadosFiltrados.length) return alert('Sem registros para exportar.');
       const cabecalhos = ["Numero_OS", "Site", "Coordenacao", "DDD", "Servico", "Tipo_Site", "Modalidade", "Gestor", "Situacao", "Data_Prevista"];
-      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.coordenacao}"`, d.ddd, `"${d.servico}"`, `"${d.tipoSite}"`, d.isSobDemanda ? d.subtipoDemanda : 'Programada', d.gestor, d.isRecusada ? 'Recusada' : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
+      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.coordenacao}"`, d.ddd, `"${d.servico}"`, `"${d.tipoSite}"`, d.isSobDemanda ? d.subtipoDemanda : 'Programada', d.gestor, d.isRecusada ? (d.isD20MesAnterior ? 'Recusada (D+20 M-1)' : 'Recusada') : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
       const conteudo = [cabecalhos.join(';'), ...linhas.map(e => e.join(';'))].join('\n');
       
       const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
