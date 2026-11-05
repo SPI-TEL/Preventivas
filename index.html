@@ -320,19 +320,19 @@
           </div>
         </div>
 
-        <!-- 4. TIPO DE SERVIÇO -->
-        <div class="relative multi-select-container" id="container-filtroTipoServico">
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Tipo de Serviço</label>
-          <button type="button" onclick="alternarDropdown('filtroTipoServico')" class="w-full text-left text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500">
-            <span class="truncate pr-1 text-slate-700 font-semibold" id="label-filtroTipoServico">Todos</span>
+        <!-- 4. NOVO: FILTRO RECUSADAS (EM SUBSTITUIÇÃO A TIPO DE SERVIÇO) -->
+        <div class="relative multi-select-container" id="container-filtroRecusadas">
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Recusadas</label>
+          <button type="button" onclick="alternarDropdown('filtroRecusadas')" class="w-full text-left text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500">
+            <span class="truncate pr-1 text-slate-700 font-semibold" id="label-filtroRecusadas">Todas</span>
             <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
           </button>
-          <div id="dropdown-filtroTipoServico" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-slate-200 rounded-lg shadow-xl p-2 z-50">
+          <div id="dropdown-filtroRecusadas" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-slate-200 rounded-lg shadow-xl p-2 z-50">
             <div class="flex justify-between pb-1 mb-1 border-b border-slate-100 text-[10px] text-blue-600 font-bold">
-              <button type="button" onclick="marcarTodos('filtroTipoServico', true)" class="hover:underline">Todos</button>
-              <button type="button" onclick="marcarTodos('filtroTipoServico', false)" class="hover:underline text-slate-400">Limpar</button>
+              <button type="button" onclick="marcarTodos('filtroRecusadas', true)" class="hover:underline">Todas</button>
+              <button type="button" onclick="marcarTodos('filtroRecusadas', false)" class="hover:underline text-slate-400">Limpar</button>
             </div>
-            <div class="dropdown-menu-custom space-y-1" id="opcoes-filtroTipoServico"></div>
+            <div class="dropdown-menu-custom space-y-1" id="opcoes-filtroRecusadas"></div>
           </div>
         </div>
 
@@ -535,12 +535,12 @@
     let mesAtualDetectado = null;
     let mesAnteriorDetectado = null;
 
-    // Estado dos filtros múltiplos
+    // Estado dos filtros múltiplos (tipoServico substituído por recusadas)
     const selecionados = {
       filtroMes: [],
       filtroCoordenacao: [],
       filtroDDD: [],
-      filtroTipoServico: [],
+      filtroRecusadas: [],
       filtroEquipamento: [],
       filtroModalidade: []
     };
@@ -782,12 +782,17 @@
       const totalOpcoes = document.querySelectorAll(`#opcoes-${id} input[type="checkbox"]`).length;
 
       if (qtd === 0 || qtd === totalOpcoes) {
-        btnLabel.innerText = id === 'filtroModalidade' ? 'Todas' : 'Todos';
+        btnLabel.innerText = (id === 'filtroModalidade' || id === 'filtroRecusadas') ? 'Todas' : 'Todos';
         btnLabel.className = 'truncate pr-1 text-slate-600 font-semibold';
       } else if (qtd === 1) {
         const val = selecionados[id][0];
         if (id === 'filtroMes') {
           btnLabel.innerText = NOMES_MESES[val] || val;
+        } else if (id === 'filtroRecusadas') {
+          if (val === 'REC_MES') btnLabel.innerText = 'Recusadas (Mês)';
+          else if (val === 'REC_D20') btnLabel.innerText = 'Recusadas (D+20)';
+          else if (val === 'NAO_REC') btnLabel.innerText = 'Não Recusadas';
+          else btnLabel.innerText = val;
         } else {
           btnLabel.innerText = val;
         }
@@ -817,8 +822,14 @@
       // 3. DDD
       configurarMultiSelect('filtroDDD', extrairValores('ddd'));
 
-      // 4. Tipo de Serviço
-      configurarMultiSelect('filtroTipoServico', extrairValores('servico'));
+      // 4. NOVO: Filtro de Recusadas (Mês Atual, D+20 e Não Recusadas)
+      const opcoesRecusadas = ['REC_MES', 'REC_D20', 'NAO_REC'];
+      const labelMapRecusadas = {
+        'REC_MES': 'Recusadas (Mês Atual)',
+        'REC_D20': 'Recusadas (D+20 Mês Anterior)',
+        'NAO_REC': 'Não Recusadas (Normais)'
+      };
+      configurarMultiSelect('filtroRecusadas', opcoesRecusadas, labelMapRecusadas);
 
       // 5. Classe Equipamento
       configurarMultiSelect('filtroEquipamento', extrairValores('equipamento'));
@@ -831,13 +842,13 @@
       selecionados.filtroMes = [String(mesAtualDetectado)];
       selecionados.filtroCoordenacao = [];
       selecionados.filtroDDD = [];
-      selecionados.filtroTipoServico = [];
+      selecionados.filtroRecusadas = [];
       selecionados.filtroEquipamento = [];
       selecionados.filtroModalidade = [];
 
       document.getElementById('filtroBusca').value = '';
 
-      ['filtroMes', 'filtroCoordenacao', 'filtroDDD', 'filtroTipoServico', 'filtroEquipamento', 'filtroModalidade'].forEach(id => {
+      ['filtroMes', 'filtroCoordenacao', 'filtroDDD', 'filtroRecusadas', 'filtroEquipamento', 'filtroModalidade'].forEach(id => {
         const checkboxes = document.querySelectorAll(`#opcoes-${id} input[type="checkbox"]`);
         checkboxes.forEach(cb => {
           cb.checked = selecionados[id].includes(cb.value);
@@ -879,9 +890,15 @@
           if (!selecionados.filtroDDD.includes(r.ddd)) return false;
         }
 
-        // 4. Filtro Tipo Serviço
-        if (selecionados.filtroTipoServico.length > 0) {
-          if (!selecionados.filtroTipoServico.includes(r.servico)) return false;
+        // 4. NOVO: FILTRO RECUSADAS
+        if (selecionados.filtroRecusadas.length > 0) {
+          const passRec = selecionados.filtroRecusadas.some(opcao => {
+            if (opcao === 'REC_MES') return r.isRecusada && !r.isD20MesAnterior;
+            if (opcao === 'REC_D20') return r.isRecusada && r.isD20MesAnterior;
+            if (opcao === 'NAO_REC') return !r.isRecusada;
+            return false;
+          });
+          if (!passRec) return false;
         }
 
         // 5. Filtro Equipamento
@@ -1008,7 +1025,6 @@
         }
       });
 
-      // Plugin personalizado para desenhar rótulos na extremidade interna de cada barra
       const pluginRotulosInternos = {
         id: 'rotulosExtremidadeInterna',
         afterDatasetsDraw(chart) {
@@ -1028,7 +1044,6 @@
                 const x = bar.x;
                 const y = bar.y + 11; // Extremidade interna (inside end)
 
-                // Sombra suave para contraste
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
                 ctx.fillText(`${valor}%`, x, y + 0.5);
 
@@ -1080,7 +1095,7 @@
       });
     }
 
-    // 2. Tabela de Projeção por DDD (Ajustada com estoque de recusadas D+20)
+    // 2. Tabela de Projeção por DDD
     function renderizarTabelaProjecao() {
       const tbody = document.getElementById('tabelaProjecaoCorpo');
       tbody.innerHTML = '';
