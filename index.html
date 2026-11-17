@@ -401,7 +401,7 @@
             <i class="fa-solid fa-table text-slate-700"></i>
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Projeção por Regional</h3>
           </div>
-          <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">Meta 100%</span>
+          <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">Ritmo Diário &bull; Meta 100%</span>
         </div>
 
         <div class="overflow-x-auto flex-1 flex flex-col justify-center">
@@ -1078,7 +1078,7 @@
       });
     }
 
-    // 2. Tabela de Projeção por Regional
+    // 2. Tabela de Projeção por Regional (Baseada na Média Diária Real)
     function renderizarTabelaProjecao() {
       const tbody = document.getElementById('tabelaProjecaoCorpo');
       tbody.innerHTML = '';
@@ -1099,17 +1099,19 @@
       });
 
       const hoje = new Date();
-      const diaAtual = Math.min(Math.max(hoje.getDate(), 1), 30);
-      const proporcaoMesDecorrido = diaAtual / 30;
+      // Obtém o total exato de dias do mês atual (ex: Novembro = 30, Dezembro = 31)
+      const totalDiasMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
+      const diaAtual = Math.min(Math.max(hoje.getDate(), 1), totalDiasMes);
+
+      const proporcaoMesDecorrido = diaAtual / totalDiasMes;
       const metaAcumuladaDia = 100 * proporcaoMesDecorrido; 
       const metaAcumuladaFormatada = metaAcumuladaDia.toFixed(2).replace('.', ',') + '%';
 
       regionaisAtivas.forEach((reg) => {
         const tot = stats[reg].total;
         const exe = stats[reg].exec;
-        const rec = stats[reg].recusadas;
-        const pend = stats[reg].pendentes;
         
+        // Percentual Realizado até hoje
         const pctReal = tot > 0 ? (exe / tot) * 100 : 0;
         const atingimentoFrenteMetaDia = metaAcumuladaDia > 0 ? (pctReal / metaAcumuladaDia) * 100 : pctReal;
 
@@ -1120,12 +1122,19 @@
           corClasseReal = 'bg-real-amarelo';
         }
 
+        // PROJEÇÃO PELO RITMO DIÁRIO (Média executada/dia * Total de dias do mês)
         let pctProj = 0;
-        if (tot > 0) {
-          const tetoMaximo = ((tot - rec) / tot) * 100;
-          const potencialRecuperacao = (pend / tot) * 100 * 0.88;
-          pctProj = Math.min(tetoMaximo, pctReal + potencialRecuperacao);
-          if (pctReal > pctProj) pctProj = pctReal;
+        let diaAtingimento100 = null;
+
+        if (tot > 0 && exe > 0) {
+          const mediaDiariaPct = pctReal / diaAtual;
+          pctProj = Math.min(100, mediaDiariaPct * totalDiasMes);
+
+          // Calcula em qual dia do mês atingirá 100% mantendo o ritmo atual
+          const diaEstimado = Math.ceil(100 / mediaDiariaPct);
+          if (diaEstimado <= totalDiasMes) {
+            diaAtingimento100 = diaEstimado;
+          }
         }
 
         const realFormatado = pctReal.toFixed(2).replace('.', ',') + '%';
@@ -1135,13 +1144,17 @@
         if (pctProj < 85) corClasseProj = 'bg-real-vermelho';
         else if (pctProj < 95) corClasseProj = 'bg-real-roxo';
 
+        const tooltipProj = diaAtingimento100 
+          ? `Ritmo: ${(pctReal / diaAtual).toFixed(2)}%/dia | Atinge 100% no dia ${diaAtingimento100}`
+          : `Ritmo: ${(pctReal / diaAtual).toFixed(2)}%/dia`;
+
         const tr = document.createElement('tr');
 
         tr.innerHTML = `
           <td>${reg}</td>
-          <td class="${corClasseReal}" title="Atingimento: ${atingimentoFrenteMetaDia.toFixed(1)}%">${realFormatado}</td>
+          <td class="${corClasseReal}" title="Atingimento frente à meta do dia: ${atingimentoFrenteMetaDia.toFixed(1)}%">${realFormatado}</td>
           <td class="bg-meta-amarelo-claro">${metaAcumuladaFormatada}</td>
-          <td class="${corClasseProj}">${projFormatado}</td>
+          <td class="${corClasseProj}" title="${tooltipProj}">${projFormatado}</td>
         `;
         tbody.appendChild(tr);
       });
