@@ -377,7 +377,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO PRINCIPAL DE GRÁFICOS: REGIONAL (5), PROJEÇÃO ESTICADA (4) E SOB DEMANDA (3) -->
+    <!-- SEÇÃO PRINCIPAL DE GRÁFICOS: REGIONAL (5), SOB DEMANDA (3) E PROJEÇÃO (4) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       
       <!-- Gráfico 1: Barras Empilhadas 100% por Regional -->
@@ -391,6 +391,20 @@
         </div>
         <div class="relative h-64">
           <canvas id="chartStackedRegional"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico 2: Detalhamento Sob Demanda (Sites) -->
+      <div class="lg:col-span-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div class="flex justify-between items-center mb-3">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-microchip text-purple-600"></i>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Sob Demanda (4 Tipos)</h3>
+          </div>
+          <span class="text-[10px] text-purple-600 bg-purple-50 px-2 py-0.5 rounded font-bold">Sites &bull; K1, K2, L1, L2</span>
+        </div>
+        <div class="relative h-64">
+          <canvas id="chartSobDemandaTipos"></canvas>
         </div>
       </div>
 
@@ -416,20 +430,6 @@
             </thead>
             <tbody id="tabelaProjecaoCorpo"></tbody>
           </table>
-        </div>
-      </div>
-
-      <!-- Gráfico 3: Detalhamento Sob Demanda -->
-      <div class="lg:col-span-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-        <div class="flex justify-between items-center mb-3">
-          <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-microchip text-purple-600"></i>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Sob Demanda (4 Tipos)</h3>
-          </div>
-          <span class="text-[10px] text-purple-600 bg-purple-50 px-2 py-0.5 rounded font-bold">K1, K2, L1, L2</span>
-        </div>
-        <div class="relative h-64">
-          <canvas id="chartSobDemandaTipos"></canvas>
         </div>
       </div>
 
@@ -470,14 +470,13 @@
             <tr>
               <th class="p-3 font-bold border-b border-slate-200">Nº OS</th>
               <th class="p-3 font-bold border-b border-slate-200">Site</th>
-              <th class="p-3 font-bold border-b border-slate-200">Coordenação (Z)</th>
-              <th class="p-3 font-bold border-b border-slate-200">Regional (T)</th>
+              <th class="p-3 font-bold border-b border-slate-200">Regional</th>
               <th class="p-3 font-bold border-b border-slate-200">Equipamento / Serviço</th>
               <th class="p-3 font-bold border-b border-slate-200">Tipo de Site</th>
-              <th class="p-3 font-bold border-b border-slate-200">Modalidade</th>
+              <th class="p-3 font-bold border-b border-slate-200">Status OS</th>
               <th class="p-3 font-bold border-b border-slate-200">Gestor</th>
-              <th class="p-3 font-bold border-b border-slate-200">Situação</th>
-              <th class="p-3 font-bold border-b border-slate-200">Dt. Prevista</th>
+              <th class="p-3 font-bold border-b border-slate-200 whitespace-nowrap">Situação</th>
+              <th class="p-3 font-bold border-b border-slate-200 whitespace-nowrap">Dt. Prevista</th>
             </tr>
           </thead>
           <tbody id="tabelaCorpo" class="divide-y divide-slate-100 text-slate-700 bg-white"></tbody>
@@ -680,7 +679,7 @@
               regional: regionalColT || 'Outros',
               gestor: gestor,
               tipoSite: tipoSite,
-              estadoOS: getVal(r, ['Denominação Estado OS', 'Estado OS']),
+              estadoOS: getVal(r, ['Denominação Estado OS', 'Denominacao Estado OS', 'Estado OS']),
               dtPrevista: getVal(r, ['Data Prevista']),
               subtipoDemanda: subtipoDemanda,
               isSobDemanda: subtipoDemanda !== null,
@@ -1160,21 +1159,28 @@
       });
     }
 
-    // 3. Gráfico Sob Demanda
+    // 3. Gráfico Sob Demanda (Totalizado por Quantidade de Sites Distintos)
     function renderizarGraficoSobDemanda() {
       const tipos = ['Tipo 8 K1', 'Tipo 8 K2', 'Tipo 8 L1', 'Tipo 8 L2'];
-      const contagemExec = [0, 0, 0, 0];
-      const contagemPend = [0, 0, 0, 0];
+      const sitesExec = [new Set(), new Set(), new Set(), new Set()];
+      const sitesPend = [new Set(), new Set(), new Set(), new Set()];
 
       dadosFiltrados.forEach(r => {
-        if (r.isSobDemanda && r.subtipoDemanda) {
+        if (r.isSobDemanda && r.subtipoDemanda && r.site) {
           const idx = tipos.indexOf(r.subtipoDemanda);
           if (idx !== -1) {
-            if (r.isExec) contagemExec[idx]++;
-            else contagemPend[idx]++;
+            const siteNorm = r.site.trim().toUpperCase();
+            if (r.isExec) {
+              sitesExec[idx].add(siteNorm);
+            } else {
+              sitesPend[idx].add(siteNorm);
+            }
           }
         }
       });
+
+      const contagemExec = sitesExec.map(set => set.size);
+      const contagemPend = sitesPend.map(set => set.size);
 
       if (chartSobDemanda) chartSobDemanda.destroy();
       const ctx = document.getElementById('chartSobDemandaTipos').getContext('2d');
@@ -1184,13 +1190,13 @@
           labels: ['K1', 'K2', 'L1', 'L2'],
           datasets: [
             {
-              label: 'Executadas',
+              label: 'Executadas (Sites)',
               data: contagemExec,
               backgroundColor: '#8b5cf6',
               borderRadius: 4
             },
             {
-              label: 'Pendentes (TEL)',
+              label: 'Pendentes (TEL) (Sites)',
               data: contagemPend,
               backgroundColor: '#f59e0b',
               borderRadius: 4
@@ -1207,7 +1213,8 @@
           plugins: {
             tooltip: {
               callbacks: {
-                title: (items) => tipos[items[0].dataIndex]
+                title: (items) => tipos[items[0].dataIndex],
+                label: (ctx) => `${ctx.dataset.label}: ${ctx.raw} sites`
               }
             }
           }
@@ -1367,31 +1374,26 @@
         let situacaoBadge = '';
         if (r.isRecusada) {
           if (r.isD20MesAnterior) {
-            situacaoBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300" title="Prazo de correção: até dia 20 do mês subsequente"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Recusada (D+20 M-1)</span>`;
+            situacaoBadge = `<span class="inline-block whitespace-nowrap px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300" title="Prazo de correção: até dia 20 do mês subsequente"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Recusada (D+20 M-1)</span>`;
           } else {
-            situacaoBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">Recusada</span>`;
+            situacaoBadge = `<span class="inline-block whitespace-nowrap px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">Recusada</span>`;
           }
         } else if (r.isExec) {
-          situacaoBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">Executada</span>`;
+          situacaoBadge = `<span class="inline-block whitespace-nowrap px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">Executada</span>`;
         } else {
-          situacaoBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Pendente (TEL)</span>`;
+          situacaoBadge = `<span class="inline-block whitespace-nowrap px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Pendente (TEL)</span>`;
         }
 
         tr.innerHTML = `
           <td class="p-3 font-mono font-semibold text-slate-800">${r.id}</td>
           <td class="p-3 font-medium text-slate-600">${r.site}</td>
-          <td class="p-3 font-semibold text-slate-700">${r.coordenacao}</td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">${r.regional}</span></td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 whitespace-nowrap">${r.regional}</span></td>
           <td class="p-3">${r.equipamento || r.servico || '-'}</td>
           <td class="p-3">${r.tipoSite || '-'}</td>
-          <td class="p-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isSobDemanda ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
-              ${r.isSobDemanda ? r.subtipoDemanda : 'Programada'}
-            </span>
-          </td>
+          <td class="p-3 font-semibold text-slate-700">${r.estadoOS || '-'}</td>
           <td class="p-3 font-bold ${r.gestor === 'TEL' ? 'text-amber-600' : 'text-emerald-600'}">${r.gestor || '-'}</td>
-          <td class="p-3">${situacaoBadge}</td>
-          <td class="p-3 text-slate-500">${r.dtPrevista || '-'}</td>
+          <td class="p-3 whitespace-nowrap">${situacaoBadge}</td>
+          <td class="p-3 text-slate-500 whitespace-nowrap">${r.dtPrevista || '-'}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -1428,8 +1430,8 @@
 
     function exportarCSV() {
       if (!dadosFiltrados.length) return alert('Sem registros para exportar.');
-      const cabecalhos = ["Numero_OS", "Site", "Coordenacao", "Regional", "Servico", "Tipo_Site", "Modalidade", "Gestor", "Situacao", "Data_Prevista"];
-      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.coordenacao}"`, `"${d.regional}"`, `"${d.servico}"`, `"${d.tipoSite}"`, d.isSobDemanda ? d.subtipoDemanda : 'Programada', d.gestor, d.isRecusada ? (d.isD20MesAnterior ? 'Recusada (D+20 M-1)' : 'Recusada') : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
+      const cabecalhos = ["Numero_OS", "Site", "Regional", "Servico", "Tipo_Site", "Status_OS", "Gestor", "Situacao", "Data_Prevista"];
+      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.regional}"`, `"${d.servico}"`, `"${d.tipoSite}"`, `"${d.estadoOS}"`, d.gestor, d.isRecusada ? (d.isD20MesAnterior ? 'Recusada (D+20 M-1)' : 'Recusada') : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
       const conteudo = [cabecalhos.join(';'), ...linhas.map(e => e.join(';'))].join('\n');
       
       const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
