@@ -333,7 +333,7 @@
           </div>
         </div>
 
-        <!-- 5. AGUARD. APROV. SUP (COLUNA AB) -->
+        <!-- 5. AGUARD. APROV. SUP -->
         <div class="relative multi-select-container" id="container-filtroAguardAprov">
           <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Aguard. Aprov. Sup</label>
           <button type="button" onclick="alternarDropdown('filtroAguardAprov')" class="w-full text-left text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500">
@@ -572,6 +572,16 @@
       return '';
     }
 
+    // Extrai o código do site pelos 3 primeiros segmentos (ex: "M.SP.AHV.CSP.ELTI" -> "M.SP.AHV")
+    function extrairCodigoSite(siteStr) {
+      if (!siteStr) return '';
+      const partes = String(siteStr).trim().toUpperCase().split('.');
+      if (partes.length >= 3) {
+        return `${partes[0]}.${partes[1]}.${partes[2]}`;
+      }
+      return String(siteStr).trim().toUpperCase();
+    }
+
     function obterSubtipoDemanda(tipoSite) {
       if (!tipoSite) return null;
       const t = tipoSite.toUpperCase().replace(/\s+|_/g, '');
@@ -673,9 +683,12 @@
               mesAtualPlanilha = numMesAtual;
             }
 
+            const siteCompleto = getVal(r, ['Site']);
+
             return {
               id: getVal(r, ['Número OS', 'Numero OS']) || `ID-${idx}`,
-              site: getVal(r, ['Site']),
+              site: siteCompleto,
+              siteBase: extrairCodigoSite(siteCompleto),
               servico: getVal(r, ['Tipo de Serviço', 'Tipo de Servico', 'Denominação OS']),
               equipamento: getVal(r, ['Denominação Classe Equipamento', 'Classe Equipamento']),
               aguardAprovSup: aguardAprovSup,
@@ -1163,17 +1176,17 @@
       });
     }
 
-    // 3. Gráfico Sites Sob Demanda (Totalizando sites únicos dos 4 tipos, excluindo duplicados)
+    // 3. Gráfico Sites Sob Demanda (Totalizando sites únicos pelo código base ex: M.SP.AHV, excluindo duplicados)
     function renderizarGraficoSobDemanda() {
       const tipos = ['Tipo 8 K1', 'Tipo 8 K2', 'Tipo 8 L1', 'Tipo 8 L2'];
-      // Mapeia cada site único por tipo para saber se o site está 100% executado ou possui pendência (evitando duplicidade de site)
+      // Agrupa por siteBase (3 primeiros blocos: ex. M.SP.AHV) para contar cada site apenas 1 vez por tipo
       const statusPorSite = [new Map(), new Map(), new Map(), new Map()];
 
       dadosFiltrados.forEach(r => {
-        if (r.isSobDemanda && r.subtipoDemanda && r.site) {
+        if (r.isSobDemanda && r.subtipoDemanda && r.siteBase) {
           const idx = tipos.indexOf(r.subtipoDemanda);
           if (idx !== -1) {
-            const siteNorm = r.site.trim().toUpperCase();
+            const siteNorm = r.siteBase;
             if (!statusPorSite[idx].has(siteNorm)) {
               statusPorSite[idx].set(siteNorm, { temPendencia: !r.isExec });
             } else if (!r.isExec) {
@@ -1444,8 +1457,8 @@
 
     function exportarCSV() {
       if (!dadosFiltrados.length) return alert('Sem registros para exportar.');
-      const cabecalhos = ["Numero_OS", "Site", "Regional", "Servico", "Tipo_Site", "Status_OS", "Aguard_Aprov_Sup", "Gestor", "Situacao", "Data_Prevista"];
-      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.regional}"`, `"${d.servico}"`, `"${d.tipoSite}"`, `"${d.estadoOS}"`, `"${d.aguardAprovSup}"`, d.gestor, d.isRecusada ? (d.isD20MesAnterior ? 'Recusada (D+20 M-1)' : 'Recusada') : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
+      const cabecalhos = ["Numero_OS", "Site", "Site_Base", "Regional", "Servico", "Tipo_Site", "Status_OS", "Aguard_Aprov_Sup", "Gestor", "Situacao", "Data_Prevista"];
+      const linhas = dadosFiltrados.map(d => [d.id, d.site, d.siteBase, `"${d.regional}"`, `"${d.servico}"`, `"${d.tipoSite}"`, `"${d.estadoOS}"`, `"${d.aguardAprovSup}"`, d.gestor, d.isRecusada ? (d.isD20MesAnterior ? 'Recusada (D+20 M-1)' : 'Recusada') : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
       const conteudo = [cabecalhos.join(';'), ...linhas.map(e => e.join(';'))].join('\n');
       
       const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
