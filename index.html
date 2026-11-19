@@ -333,19 +333,19 @@
           </div>
         </div>
 
-        <!-- 5. CLASSE EQUIPAMENTO -->
-        <div class="relative multi-select-container" id="container-filtroEquipamento">
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Equipamento</label>
-          <button type="button" onclick="alternarDropdown('filtroEquipamento')" class="w-full text-left text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500">
-            <span class="truncate pr-1 text-slate-700 font-semibold" id="label-filtroEquipamento">Todos</span>
+        <!-- 5. AGUARD. APROV. SUP (COLUNA AB) -->
+        <div class="relative multi-select-container" id="container-filtroAguardAprov">
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Aguard. Aprov. Sup</label>
+          <button type="button" onclick="alternarDropdown('filtroAguardAprov')" class="w-full text-left text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500">
+            <span class="truncate pr-1 text-slate-700 font-semibold" id="label-filtroAguardAprov">Todos</span>
             <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
           </button>
-          <div id="dropdown-filtroEquipamento" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-slate-200 rounded-lg shadow-xl p-2 z-50">
+          <div id="dropdown-filtroAguardAprov" class="hidden absolute top-full left-0 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-xl p-2 z-50">
             <div class="flex justify-between pb-1 mb-1 border-b border-slate-100 text-[10px] text-blue-600 font-bold">
-              <button type="button" onclick="marcarTodos('filtroEquipamento', true)" class="hover:underline">Todos</button>
-              <button type="button" onclick="marcarTodos('filtroEquipamento', false)" class="hover:underline text-slate-400">Limpar</button>
+              <button type="button" onclick="marcarTodos('filtroAguardAprov', true)" class="hover:underline">Todos</button>
+              <button type="button" onclick="marcarTodos('filtroAguardAprov', false)" class="hover:underline text-slate-400">Limpar</button>
             </div>
-            <div class="dropdown-menu-custom space-y-1" id="opcoes-filtroEquipamento"></div>
+            <div class="dropdown-menu-custom space-y-1" id="opcoes-filtroAguardAprov"></div>
           </div>
         </div>
 
@@ -377,7 +377,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO PRINCIPAL DE GRÁFICOS: REGIONAL (5), SOB DEMANDA (3) E PROJEÇÃO (4) -->
+    <!-- SEÇÃO PRINCIPAL DE GRÁFICOS: REGIONAL (5), SITES SOB DEMANDA (3) E PROJEÇÃO (4) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       
       <!-- Gráfico 1: Barras Empilhadas 100% por Regional -->
@@ -394,14 +394,14 @@
         </div>
       </div>
 
-      <!-- Gráfico 2: Detalhamento Sob Demanda (Sites) -->
+      <!-- Gráfico 2: Sites Sob Demanda -->
       <div class="lg:col-span-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-        <div class="flex justify-between items-center mb-3">
+        <div class="flex flex-col items-start gap-1.5 mb-3">
           <div class="flex items-center space-x-2">
             <i class="fa-solid fa-microchip text-purple-600"></i>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Sob Demanda (4 Tipos)</h3>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Sites Sob Demanda</h3>
           </div>
-          <span class="text-[10px] text-purple-600 bg-purple-50 px-2 py-0.5 rounded font-bold">Sites &bull; K1, K2, L1, L2</span>
+          <span class="text-[10px] text-purple-600 bg-purple-50 px-2 py-0.5 rounded font-bold border border-purple-100">Sites K1, K2, L1, L2</span>
         </div>
         <div class="relative h-64">
           <canvas id="chartSobDemandaTipos"></canvas>
@@ -534,7 +534,7 @@
       filtroCoordenacao: [],
       filtroRegional: [],
       filtroRecusadas: [],
-      filtroEquipamento: [],
+      filtroAguardAprov: [],
       filtroModalidade: []
     };
 
@@ -647,6 +647,9 @@
             // COORDENADOR: COLUNA Z (Índice 25 na planilha)
             const coordenador = getVal(r, ['Coordenador', 'Coordenador(a)', 'Coordenação', 'Coordenacao', 'Nome Coordenador'], 25) || 'Outros';
 
+            // AGUARD. APROV. SUP: COLUNA AB (Índice 27 na planilha)
+            const aguardAprovSup = getVal(r, ['Aguard. Aprov. Sup', 'Aguard Aprov Sup', 'Aguardando Aprovação Supervisor', 'Aguardando Aprovacao Supervisor'], 27);
+
             const dtConc = getVal(r, ['Data/Hora de Conclusão', 'Data de Conclusão', 'Data Conclusao']);
             const dtMod = getVal(r, ['Data Última Modificação', 'Data Ultima Modificacao']);
             const dtEdic = getVal(r, ['Data/Hora Edição', 'Data Hora Edicao']);
@@ -675,6 +678,7 @@
               site: getVal(r, ['Site']),
               servico: getVal(r, ['Tipo de Serviço', 'Tipo de Servico', 'Denominação OS']),
               equipamento: getVal(r, ['Denominação Classe Equipamento', 'Classe Equipamento']),
+              aguardAprovSup: aguardAprovSup,
               coordenacao: coordenador,
               regional: regionalColT || 'Outros',
               gestor: gestor,
@@ -808,8 +812,8 @@
       };
       configurarMultiSelect('filtroRecusadas', opcoesRecusadas, labelMapRecusadas);
 
-      // 5. Classe Equipamento
-      configurarMultiSelect('filtroEquipamento', extrairValores('equipamento'));
+      // 5. Aguard. Aprov. Sup (Coluna AB)
+      configurarMultiSelect('filtroAguardAprov', extrairValores('aguardAprovSup'));
 
       // 6. Modalidade
       configurarMultiSelect('filtroModalidade', ['Programada', 'Sob Demanda', 'Recusadas']);
@@ -820,12 +824,12 @@
       selecionados.filtroCoordenacao = [];
       selecionados.filtroRegional = [];
       selecionados.filtroRecusadas = [];
-      selecionados.filtroEquipamento = [];
+      selecionados.filtroAguardAprov = [];
       selecionados.filtroModalidade = [];
 
       document.getElementById('filtroBusca').value = '';
 
-      ['filtroMes', 'filtroCoordenacao', 'filtroRegional', 'filtroRecusadas', 'filtroEquipamento', 'filtroModalidade'].forEach(id => {
+      ['filtroMes', 'filtroCoordenacao', 'filtroRegional', 'filtroRecusadas', 'filtroAguardAprov', 'filtroModalidade'].forEach(id => {
         const checkboxes = document.querySelectorAll(`#opcoes-${id} input[type="checkbox"]`);
         checkboxes.forEach(cb => {
           cb.checked = selecionados[id].includes(cb.value);
@@ -878,9 +882,9 @@
           if (!passRec) return false;
         }
 
-        // 5. Filtro Equipamento
-        if (selecionados.filtroEquipamento.length > 0) {
-          if (!selecionados.filtroEquipamento.includes(r.equipamento)) return false;
+        // 5. Filtro Aguard. Aprov. Sup (Coluna AB)
+        if (selecionados.filtroAguardAprov.length > 0) {
+          if (!selecionados.filtroAguardAprov.includes(r.aguardAprovSup)) return false;
         }
 
         // 6. Filtro Modalidade
@@ -896,7 +900,7 @@
 
         // 7. Busca Livre
         if (termoBusca) {
-          const stringLinha = `${r.id} ${r.site} ${r.coordenacao} ${r.regional} ${r.servico} ${r.equipamento} ${r.estadoOS} ${r.gestor}`.toLowerCase();
+          const stringLinha = `${r.id} ${r.site} ${r.coordenacao} ${r.regional} ${r.servico} ${r.equipamento} ${r.aguardAprovSup} ${r.estadoOS} ${r.gestor}`.toLowerCase();
           if (!stringLinha.includes(termoBusca)) return false;
         }
 
@@ -1159,28 +1163,38 @@
       });
     }
 
-    // 3. Gráfico Sob Demanda (Totalizado por Quantidade de Sites Distintos)
+    // 3. Gráfico Sites Sob Demanda (Totalizando sites únicos dos 4 tipos, excluindo duplicados)
     function renderizarGraficoSobDemanda() {
       const tipos = ['Tipo 8 K1', 'Tipo 8 K2', 'Tipo 8 L1', 'Tipo 8 L2'];
-      const sitesExec = [new Set(), new Set(), new Set(), new Set()];
-      const sitesPend = [new Set(), new Set(), new Set(), new Set()];
+      // Mapeia cada site único por tipo para saber se o site está 100% executado ou possui pendência (evitando duplicidade de site)
+      const statusPorSite = [new Map(), new Map(), new Map(), new Map()];
 
       dadosFiltrados.forEach(r => {
         if (r.isSobDemanda && r.subtipoDemanda && r.site) {
           const idx = tipos.indexOf(r.subtipoDemanda);
           if (idx !== -1) {
             const siteNorm = r.site.trim().toUpperCase();
-            if (r.isExec) {
-              sitesExec[idx].add(siteNorm);
-            } else {
-              sitesPend[idx].add(siteNorm);
+            if (!statusPorSite[idx].has(siteNorm)) {
+              statusPorSite[idx].set(siteNorm, { temPendencia: !r.isExec });
+            } else if (!r.isExec) {
+              statusPorSite[idx].get(siteNorm).temPendencia = true;
             }
           }
         }
       });
 
-      const contagemExec = sitesExec.map(set => set.size);
-      const contagemPend = sitesPend.map(set => set.size);
+      const contagemExec = [0, 0, 0, 0];
+      const contagemPend = [0, 0, 0, 0];
+
+      statusPorSite.forEach((mapaSites, idx) => {
+        mapaSites.forEach(info => {
+          if (info.temPendencia) {
+            contagemPend[idx]++;
+          } else {
+            contagemExec[idx]++;
+          }
+        });
+      });
 
       if (chartSobDemanda) chartSobDemanda.destroy();
       const ctx = document.getElementById('chartSobDemandaTipos').getContext('2d');
@@ -1430,8 +1444,8 @@
 
     function exportarCSV() {
       if (!dadosFiltrados.length) return alert('Sem registros para exportar.');
-      const cabecalhos = ["Numero_OS", "Site", "Regional", "Servico", "Tipo_Site", "Status_OS", "Gestor", "Situacao", "Data_Prevista"];
-      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.regional}"`, `"${d.servico}"`, `"${d.tipoSite}"`, `"${d.estadoOS}"`, d.gestor, d.isRecusada ? (d.isD20MesAnterior ? 'Recusada (D+20 M-1)' : 'Recusada') : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
+      const cabecalhos = ["Numero_OS", "Site", "Regional", "Servico", "Tipo_Site", "Status_OS", "Aguard_Aprov_Sup", "Gestor", "Situacao", "Data_Prevista"];
+      const linhas = dadosFiltrados.map(d => [d.id, d.site, `"${d.regional}"`, `"${d.servico}"`, `"${d.tipoSite}"`, `"${d.estadoOS}"`, `"${d.aguardAprovSup}"`, d.gestor, d.isRecusada ? (d.isD20MesAnterior ? 'Recusada (D+20 M-1)' : 'Recusada') : (d.isExec ? 'Executada' : 'Pendente'), d.dtPrevista]);
       const conteudo = [cabecalhos.join(';'), ...linhas.map(e => e.join(';'))].join('\n');
       
       const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
